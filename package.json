@@ -1,0 +1,25 @@
+{
+  "name": "local-api-client",
+  "private": true,
+  "version": "0.7.3",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write ."
+  },
+  "dependencies": {
+    "preact": "^10.29.7"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.5.7",
+    "@types/chrome": "^0.0.280",
+    "typescript": "^5.6.3",
+    "vite": "^8.2.0",
+    "vitest": "^4.1.10"
+  }
+}
