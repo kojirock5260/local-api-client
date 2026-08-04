@@ -19,12 +19,15 @@ export type ResponseData = {
   size: number;
   headers: [string, string][];
   bodyText: string;
+  /**
+   * 本文を JSON として解釈した値。JSON でないときと、{@link truncated} のときは `undefined`。
+   *
+   * 切れている本文を解釈しないのは、途中で切っても構文として通ってしまう形があるため。
+   * たとえば本文が巨大な数値 1 個だと、どこで切っても数値として読めてしまい、
+   * 実際とは違う値を「完全な結果」として表示することになる。
+   */
   json: unknown | undefined;
   pretty: string | null;
-  /**
-   * 本文が途中で切られているか。
-   * 履歴から復元したときだけ true になり得る。送信直後のレスポンスでは常に undefined。
-   */
   truncated?: boolean;
 };
 

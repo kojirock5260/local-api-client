@@ -125,6 +125,16 @@ describe("fromStoredResponse", () => {
     expect(r.pretty).toBeNull();
   });
 
+  it("切った本文が JSON として読めてしまう場合でも解釈しない", () => {
+    // 巨大な数値 1 個は、どこで切っても数値として通ってしまう。
+    // 解釈すると、実際とは違う値を完全な結果として表示することになる。
+    const digits = "1".repeat(BODY_LIMIT + 100);
+    const r = fromStoredResponse(toStoredResponse(makeResponse(digits)));
+    expect(r.truncated).toBe(true);
+    expect(r.json).toBeUndefined();
+    expect(r.pretty).toBeNull();
+  });
+
   it("leaves json undefined for non-JSON content types", () => {
     const r = fromStoredResponse(toStoredResponse(makeResponse("<html></html>", "text/html")));
     expect(r.json).toBeUndefined();

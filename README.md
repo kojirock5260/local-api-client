@@ -12,6 +12,11 @@ A minimal REST client for localhost, as a Chrome extension side panel.
 - **Zero external communication**: no analytics, no cloud sync, no external fonts. Your data never leaves your machine
 - **Only what is needed**: build a request, send it, read the response.
 
+## Privacy
+
+Nothing is collected or transmitted. Everything stays in `chrome.storage.local`
+on your device. See the [Privacy Policy](PRIVACY.md) for details.
+
 ## Install
 
 Chrome Web Store: (coming soon)

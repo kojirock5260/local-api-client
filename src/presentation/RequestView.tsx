@@ -430,9 +430,13 @@ export default function RequestView({
               </span>
               <span className="meta">{res.timeMs} ms</span>
               <span className="meta">{formatSize(res.size)}</span>
-              {/* 履歴から復元したときだけ出る。表示している本文が全部ではないことを断る。 */}
+              {/* 表示している本文が全部ではないことを断る。大きすぎて受信時に切った
+                  場合と、履歴に残す際に切った場合の両方で出る。 */}
               {res.truncated && (
-                <span className="meta trunc" title="Only the first part was kept in history">
+                <span
+                  className="meta trunc"
+                  title="Body was too large; only the first part is shown"
+                >
                   truncated
                 </span>
               )}

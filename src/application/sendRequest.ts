@@ -7,6 +7,20 @@ import { buildUrl } from "../domain/url";
 export const TIMEOUT_MS = 15_000;
 
 /**
+ * 画面に載せるレスポンス本文の上限（バイト数）。
+ *
+ * これを超える分は捨てる。狭いサイドパネルで数MBの本文を文字列にして
+ * そのまま描画すると、パネルが固まって操作できなくなるため。
+ *
+ * ローカルの静的サーバー（README が案内している `python3 -m http.server` など）を
+ * 相手にすると、大きなファイルを 1 回の GET で引いてしまうことが実際にある。
+ *
+ * 履歴側の {@link BODY_LIMIT}（30KB）とは別物。あちらは書き込み量を抑えるための上限で、
+ * こちらは受け取った直後に画面が耐えられる量の上限。
+ */
+export const RESPONSE_LIMIT = 1024 * 1024;
+
+/**
  * 送信の結果。失敗も例外ではなくこの型で返るので、呼び出し側は try/catch を書かなくていい。
  *
  * `reason` の意味は次のとおり。
@@ -93,7 +107,13 @@ async function run(
     // 先にテキストへ変換すると、文字数しか分からずサイズ表示がずれる。
     const blob = await response.blob();
     const timeMs = Math.round(performance.now() - started);
-    const bodyText = await blob.text();
+
+    // 上限を超えていたら、文字列にする前に blob の段階で切る。
+    // 先に全部 text() にしてから切ると、捨てる分まで一度メモリに載せることになる。
+    // 切れ目はバイト境界なので、末尾のマルチバイト文字が壊れることがある。
+    // 表示は raw に落ちるため、壊れた 1 文字が判断を誤らせることはない。
+    const truncated = blob.size > RESPONSE_LIMIT;
+    const bodyText = await (truncated ? blob.slice(0, RESPONSE_LIMIT) : blob).text();
     const ct = response.headers.get("content-type") ?? "";
 
     return {
@@ -108,11 +128,14 @@ async function run(
         status: response.status,
         statusText: response.statusText,
         timeMs,
+        // 切ったあとも、サイズは受け取った本当の量を出す。
         size: blob.size,
         headers: [...response.headers.entries()],
         bodyText,
-        json: tryParseJson(ct, bodyText),
-        pretty: prettyJson(ct, bodyText),
+        // 切れているなら JSON として解釈しない。{@link ResponseData.json} を参照。
+        json: truncated ? undefined : tryParseJson(ct, bodyText),
+        pretty: truncated ? null : prettyJson(ct, bodyText),
+        truncated,
       },
     };
   } catch {

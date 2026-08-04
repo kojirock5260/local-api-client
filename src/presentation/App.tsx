@@ -1,4 +1,4 @@
-import { useEffect, useState } from "preact/hooks";
+import { useEffect, useRef, useState } from "preact/hooks";
 import { load, save } from "../application/storage";
 import {
   fromStoredResponse,
@@ -49,6 +49,10 @@ export default function App() {
 
   const [toasts, setToasts] = useState<ToastItem[]>([]);
 
+  // 保存が失敗し続けているあいだ true。同じ知らせを何度も出さないための目印。
+  // 再描画のたびに戻ってほしくないので state ではなく ref に置く。
+  const saveFailedRef = useRef(false);
+
   /**
    * トーストを 1 件出す。3 秒後に自動で消える。
    *
@@ -59,6 +63,31 @@ export default function App() {
     const id = crypto.randomUUID();
     setToasts((t) => [...t, { id, message, kind }]);
     setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 3000);
+  }
+
+  /**
+   * ストレージへ書き、失敗したらトーストで知らせる。
+   *
+   * `save` の Promise を放置すると、quota を超えたときに書き込みが拒否されても
+   * 画面には何も出ず、保存されていないことに気づけない。
+   *
+   * ただし Draft の保存は入力のたびに走るので、失敗が続くとトーストが積み上がる。
+   * そのため知らせるのは「成功していた状態から失敗に変わったとき」の 1 回だけにして、
+   * 書けるようになったらまた知らせられる状態に戻す。
+   *
+   * @param key ストレージのキー
+   * @param value 保存する値
+   */
+  function persist(key: string, value: unknown) {
+    save(key, value)
+      .then(() => {
+        saveFailedRef.current = false;
+      })
+      .catch(() => {
+        if (saveFailedRef.current) return;
+        saveFailedRef.current = true;
+        notify("Could not save. Storage may be full.", "danger");
+      });
   }
 
   // 起動時に Draft・履歴・保存リクエストを復元する。
@@ -81,18 +110,18 @@ export default function App() {
   // 1 文字打つたびに書くと重いので、300ms 待ってからまとめて書く。
   useEffect(() => {
     if (!ready) return;
-    const t = setTimeout(() => save("editor", draft), 300);
+    const t = setTimeout(() => persist("editor", draft), 300);
     return () => clearTimeout(t);
   }, [draft, ready]);
 
   // 履歴と保存リクエストは、送信や保存の操作をしたときにしか変わらない。
   // 連続で書き込まれることがないので、Draft と違って遅延させずにそのまま書く。
   useEffect(() => {
-    if (ready) save("history", history);
+    if (ready) persist("history", history);
   }, [history, ready]);
 
   useEffect(() => {
-    if (ready) save("saved", saved);
+    if (ready) persist("saved", saved);
   }, [saved, ready]);
 
   /**

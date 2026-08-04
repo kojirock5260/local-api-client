@@ -78,8 +78,8 @@ export function toStoredResponse(data: ResponseData, limit: number = BODY_LIMIT)
  * 保存しておいたレスポンスを、表示用の {@link ResponseData} に戻す。
  *
  * `json` と `pretty` は保存していないので、本文と Content-Type から作り直す。
- * 本文を切り詰めてある場合は JSON として壊れているため、両方 undefined / null になり、
- * 画面は自動的に生テキスト表示に落ちる。
+ * ただし切り詰めてある本文は解釈しない（{@link ResponseData.json} を参照）。
+ * その場合は両方 undefined / null になり、画面は自動的に生テキスト表示に落ちる。
  *
  * @param r 履歴に保存されていたレスポンス
  * @returns 画面にそのまま渡せる {@link ResponseData}
@@ -94,8 +94,8 @@ export function fromStoredResponse(r: StoredResponse): ResponseData {
     size: r.size,
     headers: r.headers,
     bodyText: r.bodyText,
-    json: tryParseJson(ct, r.bodyText),
-    pretty: prettyJson(ct, r.bodyText),
+    json: r.truncated ? undefined : tryParseJson(ct, r.bodyText),
+    pretty: r.truncated ? null : prettyJson(ct, r.bodyText),
     truncated: r.truncated,
   };
 }

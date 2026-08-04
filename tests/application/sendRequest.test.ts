@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { createSend } from "../../src/application/sendRequest";
+import { createSend, RESPONSE_LIMIT } from "../../src/application/sendRequest";
 import { type Draft, emptyDraft } from "../../src/domain/request";
 
 afterEach(() => {
@@ -128,5 +128,88 @@ describe("createSend", () => {
       expect(outcome.data.request.headers).toContainEqual(["Content-Type", "application/json"]);
       expect(outcome.data.request.body).toBe('{"age":30}');
     }
+  });
+
+  describe("大きすぎる本文", () => {
+    /**
+     * 上限ちょうどまでの本文を返すレスポンスを作る。
+     *
+     * @param size 本文のバイト数
+     * @param body 本文。省略時は `x` の繰り返し
+     * @returns JSON を名乗るレスポンス
+     */
+    const bigJson = (size: number, body?: string) =>
+      new Response(body ?? "x".repeat(size), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
+
+    it("上限を超えた本文は切り詰めて truncated を立てる", async () => {
+      const over = RESPONSE_LIMIT + 100;
+      vi.stubGlobal(
+        "fetch",
+        vi.fn(async () => bigJson(over)),
+      );
+
+      const outcome = await createSend(draft()).promise;
+
+      expect(outcome.ok).toBe(true);
+      if (outcome.ok) {
+        expect(outcome.data.truncated).toBe(true);
+        expect(outcome.data.bodyText.length).toBe(RESPONSE_LIMIT);
+        // size は切る前の、受け取った本当の量。
+        expect(outcome.data.size).toBe(over);
+      }
+    });
+
+    it("上限ちょうどなら切らない", async () => {
+      vi.stubGlobal(
+        "fetch",
+        vi.fn(async () => bigJson(RESPONSE_LIMIT)),
+      );
+
+      const outcome = await createSend(draft()).promise;
+
+      expect(outcome.ok).toBe(true);
+      if (outcome.ok) {
+        expect(outcome.data.truncated).toBe(false);
+        expect(outcome.data.bodyText.length).toBe(RESPONSE_LIMIT);
+      }
+    });
+
+    // 途中で切っても構文として通ってしまう形。ここで parse すると、
+    // 実際とは違う値を完全な結果として表示してしまう。
+    it("切った本文が JSON として読めてしまう場合でも解釈しない", async () => {
+      const digits = "1".repeat(RESPONSE_LIMIT + 100);
+      vi.stubGlobal(
+        "fetch",
+        vi.fn(async () => bigJson(0, digits)),
+      );
+
+      const outcome = await createSend(draft()).promise;
+
+      expect(outcome.ok).toBe(true);
+      if (outcome.ok) {
+        expect(outcome.data.truncated).toBe(true);
+        // 切らずに解釈していたら、この長さの数値が入ってしまう。
+        expect(outcome.data.json).toBeUndefined();
+        expect(outcome.data.pretty).toBeNull();
+      }
+    });
+
+    it("上限内なら今まで通り JSON として解釈する", async () => {
+      vi.stubGlobal(
+        "fetch",
+        vi.fn(async () => bigJson(0, '{"ok":true}')),
+      );
+
+      const outcome = await createSend(draft()).promise;
+
+      expect(outcome.ok).toBe(true);
+      if (outcome.ok) {
+        expect(outcome.data.truncated).toBe(false);
+        expect(outcome.data.json).toEqual({ ok: true });
+      }
+    });
   });
 });
