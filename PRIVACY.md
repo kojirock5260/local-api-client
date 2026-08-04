@@ -32,10 +32,15 @@ Uninstalling the extension removes this data along with it.
 
 Only the HTTP requests you build and send yourself.
 
-The extension's `host_permissions` are limited to `http://localhost/*`,
-`http://127.0.0.1/*`, `https://localhost/*` and `https://127.0.0.1/*`, so it
-cannot reach any other host. Requests go to your own local server and nowhere
-else.
+Before a request is sent, its destination is parsed and rejected unless the host
+is `localhost` or `127.0.0.1`. Chrome enforces the same limit independently: the
+extension's `host_permissions` are `http://localhost/*`, `http://127.0.0.1/*`,
+`https://localhost/*` and `https://127.0.0.1/*`.
+
+Like any HTTP client, the extension follows redirects returned by the server you
+send to. If a local server responds with a redirect to somewhere else, the
+request follows it. That is the server's behavior, not something the extension
+initiates or sends on its own.
 
 There is no analytics, no crash reporting, no cloud sync, no external fonts, and
 no remote code. The extension makes no connection to the developer or to any
@@ -74,4 +79,5 @@ the most recent revision.
 
 ## Contact
 
-Please open an issue on the project's GitHub repository.
+Please open an issue at
+https://github.com/kojirock5260/local-api-client/issues

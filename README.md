@@ -46,8 +46,11 @@ python3 -m http.server 3000
 
 - **Body (Fields)** values keep their JSON type when they parse (`30` → number, `"30"` → string, `true` → boolean), and are sent as plain strings otherwise. `application/json` is added automatically unless you set a Content-Type
 - **History and saved requests hold 30 entries each.** Older ones are dropped automatically
+- **Responses are read up to 1 MB.** Anything past that is dropped and marked `truncated`,
+  to keep a huge response from freezing the panel. The size shown is always the real one
 - **History keeps the response too**, so clicking an entry brings back what you got.
-  Bodies are capped at 30 KB; anything longer is cut and marked `truncated`
+  Bodies kept in history are capped at 30 KB; anything longer is cut and marked `truncated`
+- **A `truncated` body is never parsed as JSON**, so the raw text is shown instead of the tree
 - **Export files contain your headers and bodies as-is**
 
 ## Test and Lint
