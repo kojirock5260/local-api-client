@@ -8,7 +8,7 @@ Everything to submit to the Chrome Web Store.
 | `en/01-tree.png` … `en/05-saved.png` | Screenshots, 1280x800, upload up to 5 | `npm run screenshots` |
 | `en/promo-small-440x280.png` | Small promo tile | same |
 | `en/promo-marquee-1400x560.png` | Marquee promo tile | same |
-| `ja/…` | The same set with Japanese captions | `npm run screenshots -- --lang ja` |
+| `ja/…` | Optional set with Japanese captions, not kept in the repo | `npm run screenshots -- --lang ja` |
 | `description.en.txt`, `description.ja.txt` | Detailed description for the store listing, plain text | edit by hand |
 
 The captions live in `scripts/store-screenshots.mjs` under `TEXT`. Every run changes the image

@@ -2,8 +2,9 @@
 /**
  * Chrome Web Store 掲載用の画像を作る。
  *
- *   npm run screenshots                # store/en と store/ja
- *   npm run screenshots -- --lang ja   # 片方だけ
+ *   npm run screenshots                # store/en に英語版
+ *   npm run screenshots -- --lang ja   # store/ja に日本語版。普段は使わない
+ *   npm run screenshots -- --lang all  # 両方
  *
  * 手元の Google Chrome を playwright-core で動かす。ブラウザの追加ダウンロードは無い。
  * デモ API と Vite の開発サーバーをこのプロセス内で立ち上げ、パネルの画面を撮ってから
@@ -30,7 +31,7 @@ const OUT = resolve("store");
 
 const langs = (() => {
   const i = process.argv.indexOf("--lang");
-  const v = i >= 0 ? process.argv[i + 1] : "all";
+  const v = i >= 0 ? process.argv[i + 1] : "en";
   return v === "all" ? ["en", "ja"] : [v];
 })();
 

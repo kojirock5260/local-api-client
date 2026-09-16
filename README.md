@@ -60,7 +60,7 @@ python3 -m http.server 3000
 # In the extension: GET http://localhost + :3000/ → a 200 means it works
 ```
 
-Everything for the Chrome Web Store lives in `store/`: `npm run pack` builds and zips the extension there (the zip is git-ignored), and `npm run screenshots` regenerates the 1280x800 screenshots and promo tiles in `store/en` and `store/ja`. The screenshots are taken with your installed Google Chrome through `playwright-core`, so nothing extra is downloaded.
+Everything for the Chrome Web Store lives in `store/`: `npm run pack` builds and zips the extension there (the zip is git-ignored), and `npm run screenshots` regenerates the 1280x800 screenshots and promo tiles in `store/en` (add `-- --lang ja` for Japanese captions). The screenshots are taken with your installed Google Chrome through `playwright-core`, so nothing extra is downloaded.
 
 ## Notes
 

@@ -60,7 +60,7 @@ python3 -m http.server 3000
 # 拡張側: GET http://localhost + :3000/ → 200 が返れば OK
 ```
 
-Chrome Web Store 向けのものは `store/` にまとめてある。`npm run pack` でビルドして提出用の zip をそこに作る（zip は git に含めない）。`npm run screenshots` で 1280x800 のスクリーンショットとプロモタイルを `store/en` と `store/ja` に作り直せる。撮影には手元の Google Chrome を `playwright-core` で動かすので、追加のダウンロードは無い。
+Chrome Web Store 向けのものは `store/` にまとめてある。`npm run pack` でビルドして提出用の zip をそこに作る（zip は git に含めない）。`npm run screenshots` で 1280x800 のスクリーンショットとプロモタイルを `store/en` に作り直せる（`-- --lang ja` を付けると日本語版）。撮影には手元の Google Chrome を `playwright-core` で動かすので、追加のダウンロードは無い。
 
 ## Notes
 
