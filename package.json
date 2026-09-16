@@ -12,7 +12,8 @@
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
     "demo": "node scripts/demo-server.mjs",
-    "screenshots": "node scripts/store-screenshots.mjs"
+    "screenshots": "node scripts/store-screenshots.mjs",
+    "pack": "npm run build && cd dist && zip -qr ../store/local-api-client-$npm_package_version.zip . -x .DS_Store '*/.DS_Store' && ls -la ../store/*.zip"
   },
   "dependencies": {
     "preact": "^10.29.7"

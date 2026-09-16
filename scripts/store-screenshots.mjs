@@ -2,7 +2,7 @@
 /**
  * Chrome Web Store 掲載用の画像を作る。
  *
- *   npm run screenshots                # docs/store/en と docs/store/ja
+ *   npm run screenshots                # store/en と store/ja
  *   npm run screenshots -- --lang ja   # 片方だけ
  *
  * 手元の Google Chrome を playwright-core で動かす。ブラウザの追加ダウンロードは無い。
@@ -26,7 +26,7 @@ const VITE_PORT = 5177;
 /** パネルの CSS ピクセル。台紙には 1.5 倍で載せる。 */
 const PANEL = { width: 420, height: 500 };
 const SHOT_WIDTH = 630;
-const OUT = resolve("docs/store");
+const OUT = resolve("store");
 
 const langs = (() => {
   const i = process.argv.indexOf("--lang");
