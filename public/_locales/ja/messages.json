@@ -1,0 +1,14 @@
+{
+  "extDescription": {
+    "message": "localhost 開発用のミニマルな REST クライアント。外部通信ゼロ、権限は localhost のみ。",
+    "description": "ストアと拡張機能ページに出る短い説明"
+  },
+  "actionTitle": {
+    "message": "Local API Client を開く",
+    "description": "ツールバーアイコンのツールチップ"
+  },
+  "cmdOpen": {
+    "message": "Local API Client を開く",
+    "description": "サイドパネルを開くショートカットの名前"
+  }
+}

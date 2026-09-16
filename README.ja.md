@@ -12,6 +12,16 @@ localhost 専用のミニマルな REST クライアント（Chrome 拡張・サ
 - **外部通信ゼロ**: 解析・クラウド保存・外部フォント一切なし。データはマシンから出ない
 - **必要最小限の機能**: リクエストを組んで送ってレスポンスを見る。
 
+## できること
+
+- GET / POST / PUT / PATCH / DELETE / HEAD / OPTIONS と任意のヘッダー
+- ボディはキーと値の **Fields**（JSON として送る）、**Form**（`application/x-www-form-urlencoded`）、**Raw** テキスト
+- **ストリーミング**: 届いた分から順に表示するので、SSE のような終わらない応答も見られる
+- **cURL としてコピー** と **cURL の貼り付け**: ドキュメントや AI が出した `curl` コマンドを貼ればそのままリクエストになる
+- Bearer / Basic の **Auth** ヘルパーと、任意で有効にする **Send cookies**
+- レスポンス付きの履歴、グループ分けできる保存、JSON ファイルでのエクスポート / インポート
+- キーボード: `Ctrl+Shift+L` / `⌘⇧L` でパネルを開く、`Ctrl+Enter` / `⌘↵` で送信
+
 ## プライバシー
 
 収集も送信もしない。すべて端末内の `chrome.storage.local` に留まる。
@@ -19,7 +29,7 @@ localhost 専用のミニマルな REST クライアント（Chrome 拡張・サ
 
 ## インストール
 
-Chrome Web Store: （準備中）
+[Chrome Web Store](https://chromewebstore.google.com/detail/local-api-client/ihmoinkdbohnodnjpkdmenkmiikllfgp)。Chrome 116 以上が必要。
 
 ## 開発
 
@@ -45,13 +55,19 @@ python3 -m http.server 3000
 ## Notes
 
 - **Body (Fields)** の値は JSON としてパースできればその型（`30`→数値、`"30"`→文字列、`true`→真偽）、できなければ文字列として送る。Content-Type 未指定なら `application/json` を自動付与する
-- **履歴・保存ともに30件**が上限。超えると古いものから自動削除される
+- **Body (Form)** は同じ行を `application/x-www-form-urlencoded` で送る。値は文字列のまま、同じキーが複数あっても両方送る
+- **cURL の貼り付け** は `-X` `-H` `-d` / `--data-*` `--json` `-u` `-G` `-I` `-b` `-A` を解釈し、リクエストを変えないフラグ（`-s` `-k` `-L` など）は無視する。ファイルからの本文（`-d @file`）と multipart（`-F`）は警告を出して落とす。localhost / 127.0.0.1 以外は拒否する。パス欄に直接貼っても取り込める
+- **Send cookies** は既定でオフ。オンにすると Chrome が持つ localhost の Cookie がリクエストに付き、レスポンスの `Set-Cookie` も Chrome に保存される
+- **レスポンスは届いた分から表示する。** 打ち切りは「無通信が 15 秒続いたら」で、合計 15 秒ではない。送り続けているストリームは切れない。Cancel しても途中まで届いた分は残る
 - **レスポンスの読み込みは1MBまで**。超えた分は捨てて `truncated` と表示する。
   巨大なレスポンスでパネルが固まるのを防ぐため。サイズ表示は常に実際の値
+- **Download** は受信したままの本文をファイルに保存する。名前はパスと Content-Type から決める。`truncated` の本文には出さない
+- **履歴・保存ともに30件**が上限。超えると古いものから自動削除される
 - **履歴にはレスポンスも残る**ので、クリックすればその時の結果をそのまま見返せる。
   履歴に残す本文は30KBまでで、超えた分は切り捨てて `truncated` と表示する
 - **`truncated` の本文は JSON として解釈しない**ので、ツリー表示にはならず生テキストになる
 - **エクスポートファイルにはヘッダーとボディがそのまま含まれる**
+- **ショートカット** は `chrome://extensions/shortcuts` で変えられる
 
 ## テスト・Lint
 

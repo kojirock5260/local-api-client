@@ -1,0 +1,14 @@
+{
+  "extDescription": {
+    "message": "Minimal REST client for localhost development. Zero external communication, localhost-only permissions.",
+    "description": "Short description shown in the store and the extensions page"
+  },
+  "actionTitle": {
+    "message": "Open Local API Client",
+    "description": "Tooltip of the toolbar icon"
+  },
+  "cmdOpen": {
+    "message": "Open Local API Client",
+    "description": "Name of the keyboard shortcut that opens the side panel"
+  }
+}

@@ -2,7 +2,7 @@
 
 **Local API Client** (the "extension")
 
-Last updated: 2026-08-05
+Last updated: 2026-09-17
 
 ## Summary
 
@@ -16,7 +16,7 @@ own device:
 
 | Key | Contents |
 |---|---|
-| `editor` | The request you are currently editing (method, URL, headers, body) |
+| `editor` | The request you are currently editing (method, URL, headers, body, and whether to send cookies) |
 | `history` | Up to 30 past requests, together with their responses |
 | `saved` | Up to 30 requests you explicitly saved, with names and groups |
 
@@ -36,6 +36,13 @@ Before a request is sent, its destination is parsed and rejected unless the host
 is `localhost` or `127.0.0.1`. Chrome enforces the same limit independently: the
 extension's `host_permissions` are `http://localhost/*`, `http://127.0.0.1/*`,
 `https://localhost/*` and `https://127.0.0.1/*`.
+
+Cookies are not sent by default (`credentials: "omit"`). If you turn on
+**Send cookies** for a request, Chrome attaches the cookies it already holds for
+`localhost` / `127.0.0.1` to that request, and a `Set-Cookie` header in the
+response is stored by Chrome in its regular cookie store for that local site.
+No third party is involved; it is the same cookie store your browser uses when
+you open that site in a tab.
 
 Like any HTTP client, the extension follows redirects returned by the server you
 send to. If a local server responds with a redirect to somewhere else, the
@@ -66,6 +73,9 @@ third party.
 Exporting saved requests writes a JSON file to a location you choose. That file
 contains your headers and bodies as-is, including any credentials you typed into
 them. Handle exported files accordingly.
+
+Downloading a response body writes the response exactly as the server sent it
+to a file you choose. Nothing is added or sent anywhere else.
 
 ## Third parties
 

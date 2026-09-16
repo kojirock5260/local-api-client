@@ -3,7 +3,8 @@
   "name": "Local API Client",
   "version": "1.0.0",
   "minimum_chrome_version": "116",
-  "description": "Minimal REST client for localhost development. Zero external communication, localhost-only permissions.",
+  "default_locale": "en",
+  "description": "__MSG_extDescription__",
   "permissions": [
     "sidePanel",
     "storage"
@@ -21,7 +22,7 @@
     "service_worker": "background.js"
   },
   "action": {
-    "default_title": "Open Local API Client"
+    "default_title": "__MSG_actionTitle__"
   },
   "commands": {
     "open-panel": {
@@ -29,7 +30,7 @@
         "default": "Ctrl+Shift+L",
         "mac": "Command+Shift+L"
       },
-      "description": "Open Local API Client"
+      "description": "__MSG_cmdOpen__"
     }
   },
   "icons": {
