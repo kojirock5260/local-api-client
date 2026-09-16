@@ -126,6 +126,8 @@ function sanitize(s: unknown, i: number): SavedRequest {
       bodyMode: e.bodyMode as SavedRequest["bodyMode"],
       bodyFields,
       body: e.body as string,
+      // true と明示されたときだけ有効。それ以外は付けない側に倒す。
+      cookies: e.cookies === true,
     }),
     id: crypto.randomUUID(),
     name: (e.name as string).trim(),

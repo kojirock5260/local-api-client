@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { createSend, RESPONSE_LIMIT } from "../../src/application/sendRequest";
+import { createSend, type Progress, RESPONSE_LIMIT } from "../../src/application/sendRequest";
 import { type Draft, emptyDraft } from "../../src/domain/request";
 
 afterEach(() => {
@@ -7,6 +7,35 @@ afterEach(() => {
 });
 
 const draft = (over: Partial<Draft> = {}): Draft => ({ ...emptyDraft(), ...over });
+
+/**
+ * チャンクを順に流す本文を持つレスポンスを作る。
+ *
+ * @param chunks 流すチャンク。文字列は UTF-8 に、バイト列はそのまま
+ * @param opts.delayMs 各チャンクの前に待つ時間。省略時は待たない
+ * @param opts.close false なら最後のチャンクのあと閉じない。止まったストリームの再現用
+ * @param opts.headers レスポンスヘッダー。省略時は text/plain
+ * @returns 200 のレスポンス
+ */
+function streamed(
+  chunks: (string | Uint8Array)[],
+  opts: { delayMs?: number; close?: boolean; headers?: Record<string, string> } = {},
+): Response {
+  const enc = new TextEncoder();
+  const body = new ReadableStream<Uint8Array>({
+    async start(controller) {
+      for (const c of chunks) {
+        if (opts.delayMs) await new Promise((r) => setTimeout(r, opts.delayMs));
+        controller.enqueue(typeof c === "string" ? enc.encode(c) : c);
+      }
+      if (opts.close !== false) controller.close();
+    },
+  });
+  return new Response(body, {
+    status: 200,
+    headers: opts.headers ?? { "content-type": "text/plain" },
+  });
+}
 
 describe("createSend", () => {
   it("returns ok with parsed response data on success", async () => {
@@ -56,6 +85,20 @@ describe("createSend", () => {
     const { promise } = createSend(draft());
     const outcome = await promise;
     expect(outcome).toMatchObject({ ok: false, reason: "network" });
+    if (!outcome.ok) expect(outcome.message).not.toMatch(/certificate/);
+  });
+
+  it("adds a certificate hint when an https connection fails", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => {
+        throw new TypeError("Failed to fetch");
+      }),
+    );
+
+    const outcome = await createSend(draft({ origin: "https://localhost" })).promise;
+    expect(outcome).toMatchObject({ ok: false, reason: "network" });
+    if (!outcome.ok) expect(outcome.message).toMatch(/certificate/);
   });
 
   it("maps cancel() to reason: cancelled", async () => {
@@ -130,6 +173,130 @@ describe("createSend", () => {
     }
   });
 
+  it("handles a response without a body", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response(null, { status: 204 })),
+    );
+
+    const outcome = await createSend(draft()).promise;
+    expect(outcome.ok).toBe(true);
+    if (outcome.ok) {
+      expect(outcome.data.bodyText).toBe("");
+      expect(outcome.data.size).toBe(0);
+      expect(outcome.data.truncated).toBe(false);
+    }
+  });
+
+  describe("Cookie", () => {
+    it("omits credentials by default", async () => {
+      const fetchMock = vi.fn(
+        async (_url: URL, _init?: RequestInit) => new Response("", { status: 200 }),
+      );
+      vi.stubGlobal("fetch", fetchMock);
+
+      const outcome = await createSend(draft()).promise;
+      expect(fetchMock.mock.calls[0][1]!.credentials).toBe("omit");
+      if (outcome.ok) expect(outcome.data.request.cookies).toBe(false);
+    });
+
+    it("includes credentials only when the draft asks for cookies", async () => {
+      const fetchMock = vi.fn(
+        async (_url: URL, _init?: RequestInit) => new Response("", { status: 200 }),
+      );
+      vi.stubGlobal("fetch", fetchMock);
+
+      const outcome = await createSend(draft({ cookies: true })).promise;
+      expect(fetchMock.mock.calls[0][1]!.credentials).toBe("include");
+      if (outcome.ok) expect(outcome.data.request.cookies).toBe(true);
+    });
+  });
+
+  describe("ストリーミング", () => {
+    it("届いた分から順に途中経過を通知し、最後に全体を返す", async () => {
+      vi.stubGlobal(
+        "fetch",
+        vi.fn(async () => streamed(["data: 1\n\n", "data: 2\n\n", "data: 3\n\n"])),
+      );
+
+      const seen: Progress[] = [];
+      const outcome = await createSend(draft(), 1000, (p) => seen.push(p)).promise;
+
+      expect(outcome.ok).toBe(true);
+      if (outcome.ok) expect(outcome.data.bodyText).toBe("data: 1\n\ndata: 2\n\ndata: 3\n\n");
+      // ヘッダー到着で 1 回、チャンクごとに 1 回。
+      expect(seen[0]).toMatchObject({ status: 200, bodyText: "", size: 0 });
+      expect(seen[seen.length - 1]?.bodyText).toBe("data: 1\n\ndata: 2\n\ndata: 3\n\n");
+      expect(seen[seen.length - 1]?.size).toBe(27);
+    });
+
+    it("データが届き続けている限りタイムアウトしない", async () => {
+      // 合計は上限を超えるが、チャンクの間隔は上限より短い。
+      vi.stubGlobal(
+        "fetch",
+        vi.fn(async () => streamed(["a", "b", "c", "d"], { delayMs: 15 })),
+      );
+
+      const outcome = await createSend(draft(), 40).promise;
+      expect(outcome.ok).toBe(true);
+      if (outcome.ok) expect(outcome.data.bodyText).toBe("abcd");
+    });
+
+    it("途中で止まったストリームは無通信としてタイムアウトする", async () => {
+      vi.stubGlobal(
+        "fetch",
+        vi.fn(async () => streamed(["a"], { close: false })),
+      );
+
+      const outcome = await createSend(draft(), 20).promise;
+      expect(outcome).toMatchObject({ ok: false, reason: "timeout" });
+    });
+
+    it("受信の途中で中断できる", async () => {
+      vi.stubGlobal(
+        "fetch",
+        vi.fn(async () => streamed(["a"], { close: false })),
+      );
+
+      const { promise, cancel } = createSend(draft(), 1000);
+      // ヘッダーと最初のチャンクが届くのを待ってから止める。
+      await new Promise((r) => setTimeout(r, 10));
+      cancel();
+      const outcome = await promise;
+      expect(outcome).toMatchObject({ ok: false, reason: "cancelled" });
+    });
+
+    it("チャンクの切れ目が多バイト文字の途中でも壊れない", async () => {
+      // "あ" は E3 81 82 の 3 バイト。2 バイト目と 3 バイト目の間で切る。
+      vi.stubGlobal(
+        "fetch",
+        vi.fn(async () => streamed([new Uint8Array([0xe3, 0x81]), new Uint8Array([0x82]), "い"])),
+      );
+
+      const outcome = await createSend(draft()).promise;
+      expect(outcome.ok).toBe(true);
+      if (outcome.ok) {
+        expect(outcome.data.bodyText).toBe("あい");
+        expect(outcome.data.size).toBe(6);
+      }
+    });
+
+    it("生バイトを Content-Type 付きの Blob でも返す", async () => {
+      vi.stubGlobal(
+        "fetch",
+        vi.fn(async () => streamed(["ab", "c"], { headers: { "content-type": "text/csv" } })),
+      );
+
+      const outcome = await createSend(draft()).promise;
+      expect(outcome.ok).toBe(true);
+      if (outcome.ok) {
+        expect(outcome.data.bytes?.size).toBe(3);
+        expect(outcome.data.bytes?.type).toBe("text/csv");
+        expect(await outcome.data.bytes?.text()).toBe("abc");
+      }
+    });
+  });
+
   describe("大きすぎる本文", () => {
     /**
      * 上限ちょうどまでの本文を返すレスポンスを作る。
@@ -159,7 +326,32 @@ describe("createSend", () => {
         expect(outcome.data.bodyText.length).toBe(RESPONSE_LIMIT);
         // size は切る前の、受け取った本当の量。
         expect(outcome.data.size).toBe(over);
+        // Blob も上限まで。
+        expect(outcome.data.bytes?.size).toBe(RESPONSE_LIMIT);
       }
+    });
+
+    it("チャンクに分かれて届いても、上限のあとは数えるだけにする", async () => {
+      vi.stubGlobal(
+        "fetch",
+        vi.fn(async () =>
+          streamed(["x".repeat(RESPONSE_LIMIT - 10), "y".repeat(20), "z".repeat(30)]),
+        ),
+      );
+
+      const seen: Progress[] = [];
+      const outcome = await createSend(draft(), 1000, (p) => seen.push(p)).promise;
+
+      expect(outcome.ok).toBe(true);
+      if (outcome.ok) {
+        expect(outcome.data.truncated).toBe(true);
+        expect(outcome.data.bodyText.length).toBe(RESPONSE_LIMIT);
+        expect(outcome.data.bodyText.endsWith("y".repeat(10))).toBe(true);
+        expect(outcome.data.size).toBe(RESPONSE_LIMIT + 40);
+      }
+      // 上限を超えたあとの通知でも size は増え続ける。
+      expect(seen[seen.length - 1]?.size).toBe(RESPONSE_LIMIT + 40);
+      expect(seen[seen.length - 1]?.truncated).toBe(true);
     });
 
     it("上限ちょうどなら切らない", async () => {
@@ -174,6 +366,24 @@ describe("createSend", () => {
       if (outcome.ok) {
         expect(outcome.data.truncated).toBe(false);
         expect(outcome.data.bodyText.length).toBe(RESPONSE_LIMIT);
+      }
+    });
+
+    it("多バイト文字の途中で切れても置換文字を出さない", async () => {
+      // 末尾の "あ" の 1 バイト目だけが上限内に入る。
+      vi.stubGlobal(
+        "fetch",
+        vi.fn(async () => streamed([`${"x".repeat(RESPONSE_LIMIT - 1)}あ`])),
+      );
+
+      const outcome = await createSend(draft()).promise;
+
+      expect(outcome.ok).toBe(true);
+      if (outcome.ok) {
+        expect(outcome.data.truncated).toBe(true);
+        expect(outcome.data.bodyText.length).toBe(RESPONSE_LIMIT - 1);
+        expect(outcome.data.bodyText).not.toContain("�");
+        expect(outcome.data.size).toBe(RESPONSE_LIMIT + 2);
       }
     });
 

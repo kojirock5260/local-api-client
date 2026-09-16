@@ -18,15 +18,29 @@ export const ORIGINS = [
  */
 export type HeaderRow = { id: string; key: string; value: string; enabled: boolean };
 
+/**
+ * ボディの入力方法。
+ * - `fields` … キーと値の行を JSON にして送る
+ * - `form` … 同じ行を `application/x-www-form-urlencoded` にして送る
+ * - `raw` … テキストをそのまま送る
+ */
+export type BodyMode = "fields" | "form" | "raw";
+
 /** 画面上で編集中のリクエスト定義。履歴も保存リクエストもこれを土台にしている。 */
 export type Draft = {
   method: Method;
   origin: string;
   path: string;
   headers: HeaderRow[];
-  bodyMode: "fields" | "raw";
+  bodyMode: BodyMode;
+  /** `fields` と `form` で共有する行。切り替えても入力が消えないようにするため。 */
   bodyFields: HeaderRow[];
   body: string;
+  /**
+   * Chrome が持つ localhost の Cookie を付けて送るかどうか。
+   * 既定は付けない。付けると、レスポンスの Set-Cookie も Chrome に保存される。
+   */
+  cookies: boolean;
 };
 
 /**
@@ -54,6 +68,7 @@ export const emptyDraft = (): Draft => ({
   bodyMode: "fields",
   bodyFields: [newHeader()],
   body: "",
+  cookies: false,
 });
 
 /**
@@ -62,6 +77,7 @@ export const emptyDraft = (): Draft => ({
  *
  * v0.6 より前に保存された Draft には `bodyMode` と `bodyFields` がない。
  * その場合は、本文があれば raw モード、なければ fields モードとして開く。
+ * 1.0 より前の Draft には `cookies` がなく、その場合は付けない扱いになる。
  *
  * @param d 保存されていた Draft。項目が欠けていても、undefined や null でもよい
  * @returns 全項目が揃った Draft。`d` が無効なときは {@link emptyDraft} と同じもの
@@ -76,9 +92,14 @@ export function normalizeDraft(d: Partial<Draft> | undefined | null): Draft {
     path: typeof d.path === "string" ? d.path : base.path,
     headers: Array.isArray(d.headers) && d.headers.length > 0 ? d.headers : [newHeader()],
     bodyMode:
-      d.bodyMode === "raw" || d.bodyMode === "fields" ? d.bodyMode : body !== "" ? "raw" : "fields",
+      d.bodyMode === "raw" || d.bodyMode === "fields" || d.bodyMode === "form"
+        ? d.bodyMode
+        : body !== ""
+          ? "raw"
+          : "fields",
     bodyFields:
       Array.isArray(d.bodyFields) && d.bodyFields.length > 0 ? d.bodyFields : [newHeader()],
     body,
+    cookies: d.cookies === true,
   };
 }

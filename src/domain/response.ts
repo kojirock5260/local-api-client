@@ -8,6 +8,8 @@ export type SentRequest = {
   url: string;
   headers: [string, string][];
   body: string;
+  /** Cookie を付けて送ったかどうか。古い履歴には無いので省略可。 */
+  cookies?: boolean;
 };
 
 /** 1 回のレスポンスをまとめた、画面表示用のデータ。 */
@@ -19,6 +21,11 @@ export type ResponseData = {
   size: number;
   headers: [string, string][];
   bodyText: string;
+  /**
+   * 上限までの本文の生バイト。ファイル保存で文字化けさせないために持つ。
+   * 履歴には残さないので、履歴から復元したときは無い。
+   */
+  bytes?: Blob;
   /**
    * 本文を JSON として解釈した値。JSON でないときと、{@link truncated} のときは `undefined`。
    *

@@ -1,6 +1,6 @@
 import type { Dispatch, StateUpdater } from "preact/hooks";
 import { useRef, useState } from "preact/hooks";
-import { createSend } from "../application/sendRequest";
+import { createSend, type Progress, TIMEOUT_MS } from "../application/sendRequest";
 import { toCurl } from "../domain/curl";
 import { type StoredResponse, toStoredResponse } from "../domain/history";
 import {
@@ -64,6 +64,15 @@ export default function RequestView({
   const [dialogOpen, setDialogOpen] = useState(false);
   const [resMode, setResMode] = useState<"tree" | "raw">("tree");
 
+  // 受信の途中経過。送信中はここに届いた分が入り、完了すると res に置き換わる。
+  // 中断やタイムアウトのあとも残しておき、途中まで届いた内容を見られるようにする。
+  const [partial, setPartial] = useState<Progress | null>(null);
+
+  // 途中経過の間引き用。チャンクごとに描画すると細かい応答で固まるので、
+  // 最新の値だけ ref に控えておき、100ms に 1 回まとめて state に流す。
+  const latestRef = useRef<Progress | null>(null);
+  const flushRef = useRef<number | null>(null);
+
   // 送信中のリクエストを打ち切るための関数。送信していないときは null。
   // 再描画のたびに作り直したくないので state ではなく ref に置く。
   const cancelRef = useRef<(() => void) | null>(null);
@@ -120,6 +129,29 @@ export default function RequestView({
   }
 
   /**
+   * 受信の途中経過を受け取り、間引いて state に流す。
+   *
+   * @param p 最新の途中経過
+   */
+  function onProgress(p: Progress) {
+    latestRef.current = p;
+    if (flushRef.current !== null) return;
+    flushRef.current = window.setTimeout(() => {
+      flushRef.current = null;
+      setPartial(latestRef.current);
+    }, 100);
+  }
+
+  /** 間引きのタイマーを止め、控えていた途中経過を捨てる。 */
+  function stopProgress() {
+    if (flushRef.current !== null) {
+      clearTimeout(flushRef.current);
+      flushRef.current = null;
+    }
+    latestRef.current = null;
+  }
+
+  /**
    * リクエストを送り、結果を画面に反映する。
    *
    * 送信のたびに前回のレスポンスとエラーを先に消す。古い結果が残っていると、
@@ -131,15 +163,20 @@ export default function RequestView({
   async function send() {
     setError(null);
     setRes(null);
+    setPartial(null);
     setSending(true);
 
-    const { promise, cancel } = createSend(draft);
+    const { promise, cancel } = createSend(draft, TIMEOUT_MS, onProgress);
     cancelRef.current = cancel;
     const outcome = await promise;
     cancelRef.current = null;
+    // 完了後に遅れて届く途中経過は要らない。最後の値だけ控えてから止める。
+    const last = latestRef.current;
+    stopProgress();
     setSending(false);
 
     if (outcome.ok) {
+      setPartial(null);
       setRes(outcome.data);
       // 前回 Response や Request のタブを見ていても、まずは本文に戻す。
       setResTab("body");
@@ -151,6 +188,8 @@ export default function RequestView({
       return;
     }
 
+    // 中断やタイムアウトでも、途中まで届いた分は見せる。
+    setPartial(last);
     setError(outcome.message);
     // URL が不正だった場合はリクエスト自体が飛んでいないので、履歴には残さない。
     // タイムアウトや接続失敗は「送ったが失敗した」ことなので記録する。
@@ -420,7 +459,31 @@ export default function RequestView({
           <div className="empty">Send a request to see the response here.</div>
         )}
 
-        {sending && <div className="empty">Waiting for response…</div>}
+        {sending && !partial && <div className="empty">Waiting for response…</div>}
+
+        {/* 受信中の途中経過。中断やタイムアウトのあとも、届いた分はそのまま残す。 */}
+        {partial && (
+          <>
+            <div className="statusline">
+              <span className={`status ${statusClass(partial.status)}`}>
+                {partial.status} {partial.statusText}
+              </span>
+              <span className="meta">{sending ? "receiving…" : "stopped"}</span>
+              <span className="meta">{formatSize(partial.size)}</span>
+              {partial.truncated && (
+                <span
+                  className="meta trunc"
+                  title="Body was too large; only the first part is shown"
+                >
+                  truncated
+                </span>
+              )}
+            </div>
+            <pre className="resbody mono">
+              {partial.bodyText === "" ? "(no body yet)" : partial.bodyText}
+            </pre>
+          </>
+        )}
 
         {res && (
           <>
