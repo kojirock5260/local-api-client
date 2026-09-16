@@ -315,7 +315,10 @@ export default function RequestView({
       className="reqview"
       onKeyDown={(e) => {
         // ダイアログの中の Enter はそのダイアログの確定に使うので、送信には回さない。
-        if (dialogOpen || curlOpen || authOpen) return;
+        // 「ダイアログが開いているか」の state で判定してはいけない。ダイアログ側の
+        // ハンドラが閉じる更新を出すと、同じイベントがここに届く前に再描画が挟まり、
+        // 閉じた後のハンドラが呼ばれて送信してしまうため。発生元の要素で見る。
+        if ((e.target as HTMLElement | null)?.closest(".overlay")) return;
         if (e.key === "Enter" && (e.metaKey || e.ctrlKey) && !sending) {
           e.preventDefault();
           send();
