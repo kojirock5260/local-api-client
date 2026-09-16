@@ -345,11 +345,16 @@ button {
   color: var(--err);
 }
 
-/* 本文を一部だけ出しているときの案内行。 */
+/* 本文を一部だけ出しているときの案内行。ボタンは折り返さず、文言のほうを折り返す。 */
 .previewfoot {
   display: flex;
   align-items: center;
   gap: 6px;
+}
+
+.previewfoot .add {
+  flex: none;
+  white-space: nowrap;
 }
 
 .jmore {
