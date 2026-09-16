@@ -5,7 +5,7 @@ export type ToastKind = "info" | "success" | "danger";
 export type ToastItem = { id: string; message: string; kind: ToastKind };
 
 /**
- * 右上に積み上がる通知。
+ * 右下に積み上がる通知。タブに重ならないよう下に置き、クリックも素通しにしてある（CSS 側）。
  *
  * 消すタイミングは App が持っていて（3 秒後）、ここは渡されたものを並べるだけ。
  * タイマーを両方に散らすと消え方がずれるので、管理は片側に寄せている。

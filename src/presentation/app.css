@@ -836,12 +836,15 @@ textarea.body:focus {
 
 .toasts {
   position: fixed;
-  top: 10px;
+  /* 右上に置くとタブに重なって押せなくなる。押すものが無い右下、フッターの文言の上に出す。 */
+  bottom: 30px;
   right: 10px;
   display: flex;
   flex-direction: column;
   gap: 6px;
   z-index: 20;
+  /* トースト自体は押すものではないので、クリックは下の要素に通す。 */
+  pointer-events: none;
 }
 
 .toast {
@@ -856,7 +859,7 @@ textarea.body:focus {
 @keyframes toastin {
   from {
     opacity: 0;
-    transform: translateY(-4px);
+    transform: translateY(4px);
   }
   to {
     opacity: 1;
