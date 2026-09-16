@@ -312,6 +312,28 @@ button {
   font-size: 12px;
 }
 
+/* ヘッダー一覧の下の行。行を足すボタンと Auth、右端に Cookie の切り替え。 */
+.hfoot {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.cookies {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 2px 4px;
+}
+
+.cookies input {
+  accent-color: var(--get);
+  margin: 0;
+}
+
 /* ---- body ---- */
 textarea.body {
   border: 1px solid var(--border);

@@ -1,6 +1,7 @@
 import type { Dispatch, StateUpdater } from "preact/hooks";
 import { useRef, useState } from "preact/hooks";
 import { createSend, type Progress, TIMEOUT_MS } from "../application/sendRequest";
+import { upsertHeader } from "../domain/auth";
 import { fromCurl, toCurl } from "../domain/curl";
 import { type StoredResponse, toStoredResponse } from "../domain/history";
 import {
@@ -12,6 +13,7 @@ import {
   ORIGINS,
 } from "../domain/request";
 import type { ResponseData } from "../domain/response";
+import AuthDialog from "./AuthDialog";
 import CurlDialog from "./CurlDialog";
 import { formatSize, statusClass } from "./format";
 import JsonTree from "./JsonTree";
@@ -64,6 +66,7 @@ export default function RequestView({
   const [error, setError] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [curlOpen, setCurlOpen] = useState(false);
+  const [authOpen, setAuthOpen] = useState(false);
   const [resMode, setResMode] = useState<"tree" | "raw">("tree");
 
   // 受信の途中経過。送信中はここに届いた分が入り、完了すると res に置き換わる。
@@ -409,13 +412,37 @@ export default function RequestView({
                 </button>
               </div>
             ))}
-            <button
-              type="button"
-              className="ghost add"
-              onClick={() => patch({ headers: [...headers, newHeader()] })}
-            >
-              + Add header
-            </button>
+            <div className="hfoot">
+              <button
+                type="button"
+                className="ghost add"
+                onClick={() => patch({ headers: [...headers, newHeader()] })}
+              >
+                + Add header
+              </button>
+              <button
+                type="button"
+                className="ghost add"
+                onClick={() => setAuthOpen(true)}
+                title="Set an Authorization header (Bearer or Basic)"
+              >
+                Auth…
+              </button>
+              <div className="spacer" />
+              {/* 既定はオフ。オンにすると Chrome が持つ localhost の Cookie が付き、
+                  レスポンスの Set-Cookie も Chrome に保存される。 */}
+              <label
+                className="cookies"
+                title="Send the cookies Chrome holds for localhost. Responses may also set cookies in Chrome."
+              >
+                <input
+                  type="checkbox"
+                  checked={draft.cookies}
+                  onChange={(e) => patch({ cookies: e.currentTarget.checked })}
+                />
+                Send cookies
+              </label>
+            </div>
           </div>
         )}
 
@@ -660,6 +687,9 @@ export default function RequestView({
                   <span className={`imethod m-${res.request.method}`}>{res.request.method}</span>{" "}
                   <span className="senturl">{res.request.url}</span>
                 </div>
+                {res.request.cookies && (
+                  <span className="note">Sent with the cookies Chrome holds for localhost.</span>
+                )}
                 {res.request.headers.length > 0 && (
                   <div className="resheaders mono">
                     {res.request.headers.map(([k, v]) => (
@@ -701,6 +731,17 @@ export default function RequestView({
           onImport={(next, warnings) => {
             applyImport(next, warnings);
             setCurlOpen(false);
+          }}
+        />
+      )}
+
+      {authOpen && (
+        <AuthDialog
+          onCancel={() => setAuthOpen(false)}
+          onApply={(value) => {
+            patch({ headers: upsertHeader(headers, "Authorization", value) });
+            setAuthOpen(false);
+            onNotify("Authorization header set", "success");
           }}
         />
       )}
