@@ -273,7 +273,18 @@ export default function RequestView({
   }
 
   return (
-    <div className="reqview">
+    // biome-ignore lint/a11y/noStaticElementInteractions: 中の入力欄からバブルしてくるキー操作を 1 か所で拾うだけで、この div 自体は操作対象ではない
+    <div
+      className="reqview"
+      onKeyDown={(e) => {
+        // ダイアログの中の Enter はそのダイアログの確定に使うので、送信には回さない。
+        if (dialogOpen || curlOpen || authOpen) return;
+        if (e.key === "Enter" && (e.metaKey || e.ctrlKey) && !sending) {
+          e.preventDefault();
+          send();
+        }
+      }}
+    >
       {/* リクエストの編集 */}
       <section className="card">
         <div className="urlrow">
@@ -372,7 +383,12 @@ export default function RequestView({
               Cancel
             </button>
           ) : (
-            <button type="button" className="send" onClick={send}>
+            <button
+              type="button"
+              className="send"
+              onClick={send}
+              title="Enter in the path field, or Cmd/Ctrl+Enter anywhere"
+            >
               Send ↵
             </button>
           )}

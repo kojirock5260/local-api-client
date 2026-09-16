@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Local API Client",
-  "version": "0.7.3",
-  "minimum_chrome_version": "114",
+  "version": "1.0.0",
+  "minimum_chrome_version": "116",
   "description": "Minimal REST client for localhost development. Zero external communication, localhost-only permissions.",
   "permissions": [
     "sidePanel",
@@ -22,6 +22,15 @@
   },
   "action": {
     "default_title": "Open Local API Client"
+  },
+  "commands": {
+    "open-panel": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+L",
+        "mac": "Command+Shift+L"
+      },
+      "description": "Open Local API Client"
+    }
   },
   "icons": {
     "16": "icons/icon16.png",
