@@ -49,6 +49,21 @@ describe("toCurl", () => {
     );
   });
 
+  it("emits form mode as urlencoded with auto Content-Type", () => {
+    const d = draft({ method: "POST", path: ":3000/login", bodyMode: "form" });
+    d.bodyFields = [
+      { id: "1", key: "user", value: "sato", enabled: true },
+      { id: "2", key: "pass", value: "p w", enabled: true },
+    ];
+    expect(toCurl(d)).toBe(
+      [
+        "curl -X POST 'http://localhost:3000/login'",
+        "-H 'Content-Type: application/x-www-form-urlencoded'",
+        "--data 'user=sato&pass=p+w'",
+      ].join(" \\\n  "),
+    );
+  });
+
   it("skips disabled and empty-key headers, and body for GET", () => {
     const d = draft({ bodyMode: "raw", body: "should-not-appear" });
     d.headers = [

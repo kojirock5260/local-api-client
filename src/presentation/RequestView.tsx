@@ -382,6 +382,15 @@ export default function RequestView({
               <button
                 type="button"
                 role="tab"
+                aria-selected={bodyMode === "form"}
+                className={bodyMode === "form" ? "subtab active" : "subtab"}
+                onClick={() => patch({ bodyMode: "form" })}
+              >
+                Form
+              </button>
+              <button
+                type="button"
+                role="tab"
                 aria-selected={bodyMode === "raw"}
                 className={bodyMode === "raw" ? "subtab active" : "subtab"}
                 onClick={() => patch({ bodyMode: "raw" })}
@@ -390,7 +399,8 @@ export default function RequestView({
               </button>
             </div>
 
-            {bodyMode === "fields" && (
+            {/* Fields と Form は同じ行を使う。エンコードの違いは buildPayload が吸収する。 */}
+            {(bodyMode === "fields" || bodyMode === "form") && (
               <div className="headers">
                 {bodyFields.map((f) => (
                   <div className="hrow" key={f.id}>
@@ -411,7 +421,7 @@ export default function RequestView({
                       className="mono"
                       value={f.value}
                       onInput={(e) => updateBodyField(f.id, { value: e.currentTarget.value })}
-                      placeholder='"sato" / 30 / true'
+                      placeholder={bodyMode === "form" ? "sato" : '"sato" / 30 / true'}
                       spellcheck={false}
                     />
                     <button
@@ -432,7 +442,9 @@ export default function RequestView({
                   + Add field
                 </button>
                 <span className="note">
-                  Sent as JSON. Values parse as JSON when possible, otherwise as strings.
+                  {bodyMode === "form"
+                    ? "Sent as application/x-www-form-urlencoded. Values are sent as strings; repeated keys are kept."
+                    : "Sent as JSON. Values parse as JSON when possible, otherwise as strings."}
                 </span>
               </div>
             )}

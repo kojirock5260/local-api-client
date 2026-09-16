@@ -37,6 +37,24 @@ export function fieldsToObject(rows: HeaderRow[]): Record<string, unknown> {
 }
 
 /**
+ * 有効かつキーが空でない行を `application/x-www-form-urlencoded` の文字列にする。
+ *
+ * fields モードと違い、値は JSON として解釈せず入力された文字列をそのまま送る。
+ * 同じキーの行が複数あっても両方残す。`ids=1&ids=2` のような形が要るため。
+ * 空白が `+` になるのは URLSearchParams の挙動で、フォーム送信の標準どおり。
+ *
+ * @param rows ボディフィールドの行。無効な行やキーが空の行が混ざっていてよい
+ * @returns エンコード済みの文字列。集める行が 1 つも無ければ空文字
+ */
+export function fieldsToForm(rows: HeaderRow[]): string {
+  const params = new URLSearchParams();
+  for (const r of rows) {
+    if (r.enabled && r.key.trim() !== "") params.append(r.key.trim(), r.value);
+  }
+  return params.toString();
+}
+
+/**
  * 実際に送るボディと、こちらで自動的に付け足すヘッダーを計算する。
  *
  * 送信も cURL 出力もこの関数を通すので、画面に出るコマンドと実際に飛ぶ
@@ -45,9 +63,9 @@ export function fieldsToObject(rows: HeaderRow[]): Record<string, unknown> {
  * 判定の順序は次のとおり。
  * 1. GET と HEAD はボディを持たないので、常に空を返す
  * 2. raw モードは入力をそのまま返す。ヘッダーの補完もしない
- * 3. fields モードで有効な行が 1 つもなければ空を返す（`{}` は送らない）
- * 4. fields モードでユーザーが Content-Type を指定していなければ
- *    `application/json` を補う。指定済みならそちらを尊重する
+ * 3. fields / form モードで有効な行が 1 つもなければ空を返す（`{}` は送らない）
+ * 4. ユーザーが Content-Type を指定していなければ、fields なら `application/json`、
+ *    form なら `application/x-www-form-urlencoded` を補う。指定済みならそちらを尊重する
  *
  * @param draft 送信しようとしている Draft。`method` `bodyMode` `bodyFields` `body` `headers` を参照する
  * @returns `body` は送信するボディ文字列（空文字ならボディを送らない）、`autoHeaders` は自動的に付け足すヘッダー（補完不要なら空オブジェクト）
@@ -70,6 +88,13 @@ export function buildPayload(draft: Draft): {
   const hasContentType = draft.headers.some(
     (h) => h.enabled && h.key.trim().toLowerCase() === "content-type",
   );
+
+  if (draft.bodyMode === "form") {
+    return {
+      body: fieldsToForm(draft.bodyFields),
+      autoHeaders: hasContentType ? {} : { "Content-Type": "application/x-www-form-urlencoded" },
+    };
+  }
   return {
     body: JSON.stringify(fieldsToObject(draft.bodyFields)),
     autoHeaders: hasContentType ? {} : { "Content-Type": "application/json" },

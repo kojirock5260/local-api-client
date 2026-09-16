@@ -17,6 +17,20 @@ describe("serialize / parse round trip", () => {
     expect(parsed[0].origin).toBe("http://localhost");
   });
 
+  it("keeps the form mode and the cookie flag across a round trip", () => {
+    const items = upsertSaved([], { ...emptyDraft(), bodyMode: "form", cookies: true }, "login");
+    const parsed = parseSavedFile(serializeSaved(items));
+    expect(parsed[0].bodyMode).toBe("form");
+    expect(parsed[0].cookies).toBe(true);
+  });
+
+  it("turns a non-boolean cookie flag off", () => {
+    const items = make("x");
+    const file = JSON.parse(serializeSaved(items));
+    file.saved[0].cookies = "yes";
+    expect(parseSavedFile(JSON.stringify(file))[0].cookies).toBe(false);
+  });
+
   it("rejects non-JSON", () => {
     expect(() => parseSavedFile("not json")).toThrow(/valid JSON/);
   });
