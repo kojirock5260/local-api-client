@@ -31,6 +31,14 @@ on your device. See the [Privacy Policy](PRIVACY.md) for details.
 
 [Chrome Web Store](https://chromewebstore.google.com/detail/local-api-client/ihmoinkdbohnodnjpkdmenkmiikllfgp). Requires Chrome 116 or later.
 
+## Try it
+
+```bash
+npm run demo
+```
+
+This starts a small API on http://localhost:3000 with no extra dependencies: users you can list, create and delete, a login that sets a cookie, a route that needs a Bearer token, a server-sent event stream, a slow route, a 2 MB body and a 500. Open http://localhost:3000 in a tab for the list with curl examples. In the extension, pick `http://localhost` and type `:3000/users`.
+
 ## Development
 
 ```bash
@@ -45,12 +53,14 @@ To run your build in Chrome:
 2. Turn on "Developer mode" in the top right
 3. "Load unpacked" → select the `dist/` folder
 
-To try it out, start any local server:
+To try it out, use `npm run demo` above, or any local server:
 
 ```bash
 python3 -m http.server 3000
 # In the extension: GET http://localhost + :3000/ → a 200 means it works
 ```
+
+`npm run screenshots` regenerates the store images in `docs/store/` (1280x800 screenshots and promo tiles, English and Japanese). It drives your installed Google Chrome through `playwright-core`, so nothing extra is downloaded.
 
 ## Notes
 

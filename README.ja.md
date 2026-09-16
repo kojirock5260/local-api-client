@@ -31,6 +31,14 @@ localhost 専用のミニマルな REST クライアント（Chrome 拡張・サ
 
 [Chrome Web Store](https://chromewebstore.google.com/detail/local-api-client/ihmoinkdbohnodnjpkdmenkmiikllfgp)。Chrome 116 以上が必要。
 
+## 試す
+
+```bash
+npm run demo
+```
+
+追加の依存なしで http://localhost:3000 に小さな API が立つ。ユーザーの一覧・作成・削除、Cookie を発行するログイン、Bearer トークンが要る経路、SSE のストリーム、遅い経路、2MB の本文、500 が揃っている。http://localhost:3000 をタブで開くと curl の例付きの一覧が出る。拡張側では `http://localhost` を選んで `:3000/users` と打てばよい。
+
 ## 開発
 
 ```bash
@@ -45,12 +53,14 @@ npm run dev     # UI だけブラウザで確認する場合（chrome.* API は�
 2. 右上「デベロッパーモード」を ON
 3. 「パッケージ化されていない拡張機能を読み込む」→ `dist/` フォルダを選択
 
-動作確認は適当なローカルサーバを立てて:
+動作確認は上の `npm run demo` か、適当なローカルサーバを立てて:
 
 ```bash
 python3 -m http.server 3000
 # 拡張側: GET http://localhost + :3000/ → 200 が返れば OK
 ```
+
+`npm run screenshots` でストア用の画像を `docs/store/` に作り直せる（1280x800 のスクリーンショットとプロモタイル、英語と日本語）。手元の Google Chrome を `playwright-core` で動かすので、追加のダウンロードは無い。
 
 ## Notes
 
