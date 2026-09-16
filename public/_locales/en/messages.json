@@ -6,9 +6,5 @@
   "actionTitle": {
     "message": "Open Local API Client",
     "description": "Tooltip of the toolbar icon"
-  },
-  "cmdOpen": {
-    "message": "Open Local API Client",
-    "description": "Name of the keyboard shortcut that opens the side panel"
   }
 }

@@ -6,9 +6,5 @@
   "actionTitle": {
     "message": "Local API Client を開く",
     "description": "ツールバーアイコンのツールチップ"
-  },
-  "cmdOpen": {
-    "message": "Local API Client を開く",
-    "description": "サイドパネルを開くショートカットの名前"
   }
 }

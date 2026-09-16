@@ -20,7 +20,7 @@ localhost 専用のミニマルな REST クライアント（Chrome 拡張・サ
 - **cURL としてコピー** と **cURL の貼り付け**: ドキュメントや AI が出した `curl` コマンドを貼ればそのままリクエストになる
 - Bearer / Basic の **Auth** ヘルパーと、任意で有効にする **Send cookies**
 - レスポンス付きの履歴、グループ分けできる保存、JSON ファイルでのエクスポート / インポート
-- キーボード: `Ctrl+Shift+L` / `⌘⇧L` でパネルを開く、`Ctrl+Enter` / `⌘↵` で送信
+- キーボード: パネルのどこからでも `Ctrl+Enter` / `⌘↵` で送信
 
 ## プライバシー
 
@@ -29,7 +29,7 @@ localhost 専用のミニマルな REST クライアント（Chrome 拡張・サ
 
 ## インストール
 
-[Chrome Web Store](https://chromewebstore.google.com/detail/local-api-client/ihmoinkdbohnodnjpkdmenkmiikllfgp)。Chrome 116 以上が必要。
+[Chrome Web Store](https://chromewebstore.google.com/detail/local-api-client/ihmoinkdbohnodnjpkdmenkmiikllfgp)。Chrome 114 以上が必要。
 
 ## 試す
 
@@ -78,7 +78,6 @@ python3 -m http.server 3000
   履歴に残す本文は30KBまでで、超えた分は切り捨てて `truncated` と表示する
 - **`truncated` の本文は JSON として解釈しない**ので、ツリー表示にはならず生テキストになる
 - **エクスポートファイルにはヘッダーとボディがそのまま含まれる**
-- **ショートカット** は `chrome://extensions/shortcuts` で変えられる
 
 ## テスト・Lint
 

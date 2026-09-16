@@ -9,7 +9,7 @@
 - **Paste cURL.** Paste a `curl` command (from docs, an AI, or DevTools) into the Paste dialog or straight into the path field. Understands `-X`, `-H`, `-d` / `--data-*`, `--json`, `-u`, `-G`, `-I`, `-b`, `-A`; drops file bodies and multipart with a warning; rejects anything not on localhost.
 - **Send cookies** switch per request, off by default. When on, Chrome's cookies for localhost are attached and `Set-Cookie` responses are stored by Chrome.
 - **Auth helper** that writes a Bearer or Basic `Authorization` header.
-- **Keyboard shortcuts.** `Ctrl+Shift+L` / `⌘⇧L` opens the panel, `Ctrl+Enter` / `⌘↵` sends from anywhere in the panel.
+- **Keyboard shortcut.** `Ctrl+Enter` / `⌘↵` sends from anywhere in the panel.
 - **Format** button and an invalid-JSON note under a Raw body that looks like JSON.
 - **Download** button that saves the response body exactly as received.
 - **Duplicate** button for saved requests.
@@ -21,7 +21,6 @@
 - The timeout now means 15 seconds *without data*, not 15 seconds in total.
 - A truncated body no longer ends in a broken multibyte character.
 - Connection failures to an `https` origin mention that Chrome must trust the certificate.
-- Chrome 116 or later is required, for the shortcut that opens the panel.
 - Toasts now appear at the bottom right and never block clicks on the tabs.
 
 ### Compatibility

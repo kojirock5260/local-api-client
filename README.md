@@ -20,7 +20,7 @@ A minimal REST client for localhost, as a Chrome extension side panel.
 - **Copy as cURL** and **Paste cURL**: paste a `curl` command from docs or an AI and it becomes the request
 - **Auth** helper for Bearer and Basic, and an opt-in **Send cookies** switch
 - History with responses, saved requests with groups, export / import as a JSON file
-- Keyboard: `Ctrl+Shift+L` / `⌘⇧L` opens the panel, `Ctrl+Enter` / `⌘↵` sends
+- Keyboard: `Ctrl+Enter` / `⌘↵` sends from anywhere in the panel
 
 ## Privacy
 
@@ -29,7 +29,7 @@ on your device. See the [Privacy Policy](PRIVACY.md) for details.
 
 ## Install
 
-[Chrome Web Store](https://chromewebstore.google.com/detail/local-api-client/ihmoinkdbohnodnjpkdmenkmiikllfgp). Requires Chrome 116 or later.
+[Chrome Web Store](https://chromewebstore.google.com/detail/local-api-client/ihmoinkdbohnodnjpkdmenkmiikllfgp). Requires Chrome 114 or later.
 
 ## Try it
 
@@ -78,7 +78,6 @@ python3 -m http.server 3000
   Bodies kept in history are capped at 30 KB; anything longer is cut and marked `truncated`
 - **A `truncated` body is never parsed as JSON**, so the raw text is shown instead of the tree
 - **Export files contain your headers and bodies as-is**
-- **Shortcuts** can be changed at `chrome://extensions/shortcuts`
 
 ## Test and Lint
 
