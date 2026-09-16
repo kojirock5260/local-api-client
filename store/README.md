@@ -9,6 +9,7 @@ Everything to submit to the Chrome Web Store.
 | `en/promo-small-440x280.png` | Small promo tile | same |
 | `en/promo-marquee-1400x560.png` | Marquee promo tile | same |
 | `ja/…` | The same set with Japanese captions | `npm run screenshots -- --lang ja` |
+| `description.en.txt`, `description.ja.txt` | Detailed description for the store listing, plain text | edit by hand |
 
 The captions live in `scripts/store-screenshots.mjs` under `TEXT`. Every run changes the image
 bytes (timestamps and timings appear in the panel), so commit new images only when the look changed.

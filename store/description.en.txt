@@ -1,0 +1,21 @@
+Local API Client is a minimal REST client that lives in Chrome's side panel and talks only to localhost.
+
+Send requests to the server you are developing without leaving the tab: pick a method, type the port and path, add headers and a body, and read the response as a collapsible JSON tree. No account, no cloud, no telemetry. Everything you type stays in chrome.storage.local on your own machine.
+
+WHAT IT DOES
+• GET, POST, PUT, PATCH, DELETE, HEAD and OPTIONS with custom headers
+• Body as key-value fields (sent as JSON), a form post (x-www-form-urlencoded) or raw text
+• Responses stream in as they arrive, so server-sent events and long responses just work. Cancel keeps what you already got
+• JSON tree and raw views, response headers, and a copy of exactly what was sent
+• Paste a curl command from docs, DevTools or an AI and it becomes the request. Copy any request back out as curl
+• Bearer and Basic auth in one click, and an opt-in switch to send the cookies Chrome holds for localhost
+• History of the last 30 requests with their responses, saved requests in groups, export and import as a JSON file
+• Cmd/Ctrl+Enter sends from anywhere in the panel. Download saves a response body exactly as received
+
+WHY LOCALHOST ONLY
+Web-based API clients cannot reach localhost without a proxy or an agent, and many desktop clients want an account and cloud sync. This extension asks Chrome for exactly two permissions, sidePanel and storage, plus access to localhost and 127.0.0.1, and nothing else. It makes no connection to the developer or to any third party. A request to any other host is rejected before it is sent.
+
+PRIVACY
+Nothing is collected or transmitted. There is no analytics, no crash reporting, no cloud sync and no remote code. The full source is on GitHub: https://github.com/kojirock5260/local-api-client
+
+Requires Chrome 114 or later.
