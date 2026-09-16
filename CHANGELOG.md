@@ -13,6 +13,7 @@
 - **Format** button and an invalid-JSON note under a Raw body that looks like JSON.
 - **Download** button that saves the response body exactly as received.
 - **Duplicate** button for saved requests.
+- Large bodies render in part at first (100,000 characters, 200 tree children per level) with *Show all* / *Show more*, so a 1 MB response no longer freezes the panel.
 - Japanese store description and UI strings for the manifest (`_locales/ja`).
 
 ### Changed
@@ -21,6 +22,7 @@
 - A truncated body no longer ends in a broken multibyte character.
 - Connection failures to an `https` origin mention that Chrome must trust the certificate.
 - Chrome 116 or later is required, for the shortcut that opens the panel.
+- Toasts now appear at the bottom right and never block clicks on the tabs.
 
 ### Compatibility
 

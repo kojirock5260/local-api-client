@@ -345,6 +345,18 @@ button {
   color: var(--err);
 }
 
+/* 本文を一部だけ出しているときの案内行。 */
+.previewfoot {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.jmore {
+  font-size: 11px;
+  margin: 2px 0 2px 2px;
+}
+
 /* ---- body ---- */
 textarea.body {
   border: 1px solid var(--border);

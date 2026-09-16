@@ -61,6 +61,7 @@ python3 -m http.server 3000
 - **Responses are shown as they arrive.** A request is cut off after 15 seconds *without data*, not 15 seconds in total, so a stream that keeps sending is never cut. Cancel keeps what arrived so far
 - **Responses are read up to 1 MB.** Anything past that is dropped and marked `truncated`,
   to keep a huge response from freezing the panel. The size shown is always the real one
+- **Very large bodies are shown in part at first.** The first 100,000 characters are rendered, and *Show all* renders the rest. The tree view shows 200 children per level and offers *Show more*. Copy and Download always use the whole body
 - **Download** saves the body exactly as received, named after the path and the Content-Type. It is not offered for truncated bodies
 - **History and saved requests hold 30 entries each.** Older ones are dropped automatically
 - **History keeps the response too**, so clicking an entry brings back what you got.

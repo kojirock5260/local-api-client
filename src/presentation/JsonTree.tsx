@@ -1,4 +1,5 @@
 import { useState } from "preact/hooks";
+import { TREE_CHILDREN_LIMIT } from "../domain/preview";
 
 /**
  * レスポンスの JSON を、折りたためるツリーで表示する。
@@ -33,6 +34,10 @@ function Node({ k, value, depth }: { k: string | null; value: unknown; depth: nu
 
   // 最初に開いておくのはルートだけ。全部開くとレスポンスが大きいとき画面が埋まる。
   const [open, setOpen] = useState(depth < 1);
+
+  // 一度に出す子の数。要素が数万ある配列で子を全部作ると固まるので、
+  // 上限まで出して、残りは Show more で足していく。
+  const [limit, setLimit] = useState(TREE_CHILDREN_LIMIT);
 
   if (!isObj) {
     return (
@@ -80,9 +85,18 @@ function Node({ k, value, depth }: { k: string | null; value: unknown; depth: nu
       </button>
       {open && (
         <div className="jkids">
-          {entries.map(([kk, vv]) => (
+          {entries.slice(0, limit).map(([kk, vv]) => (
             <Node key={kk} k={kk} value={vv} depth={depth + 1} />
           ))}
+          {entries.length > limit && (
+            <button
+              type="button"
+              className="ghost add jmore"
+              onClick={() => setLimit((n) => n + TREE_CHILDREN_LIMIT)}
+            >
+              Show more · {(entries.length - limit).toLocaleString()} hidden
+            </button>
+          )}
           <div className="jbracket">{isArr ? "]" : "}"}</div>
         </div>
       )}

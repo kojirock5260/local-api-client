@@ -16,6 +16,7 @@ import {
 } from "../domain/request";
 import type { ResponseData } from "../domain/response";
 import AuthDialog from "./AuthDialog";
+import BodyText from "./BodyText";
 import CurlDialog from "./CurlDialog";
 import { downloadBlob } from "./download";
 import { formatSize, statusClass } from "./format";
@@ -75,6 +76,10 @@ export default function RequestView({
   // 受信の途中経過。送信中はここに届いた分が入り、完了すると res に置き換わる。
   // 中断やタイムアウトのあとも残しておき、途中まで届いた内容を見られるようにする。
   const [partial, setPartial] = useState<Progress | null>(null);
+
+  // 送信のたびに増やす値。本文表示の key に渡して、新しいレスポンスでは
+  // 「一部だけ表示」の状態に戻す。
+  const [sendCount, setSendCount] = useState(0);
 
   // 途中経過の間引き用。チャンクごとに描画すると細かい応答で固まるので、
   // 最新の値だけ ref に控えておき、100ms に 1 回まとめて state に流す。
@@ -207,6 +212,7 @@ export default function RequestView({
     setRes(null);
     setPartial(null);
     setSending(true);
+    setSendCount((n) => n + 1);
 
     const { promise, cancel } = createSend(draft, TIMEOUT_MS, onProgress);
     cancelRef.current = cancel;
@@ -645,9 +651,10 @@ export default function RequestView({
                 </span>
               )}
             </div>
-            <pre className="resbody mono">
-              {partial.bodyText === "" ? "(no body yet)" : partial.bodyText}
-            </pre>
+            <BodyText
+              text={partial.bodyText === "" ? "(no body yet)" : partial.bodyText}
+              expandable={false}
+            />
           </>
         )}
 
@@ -747,14 +754,15 @@ export default function RequestView({
                     <JsonTree value={res.json} />
                   </div>
                 ) : (
-                  <pre className="resbody mono">{res.bodyText}</pre>
+                  <BodyText key={sendCount} text={res.bodyText} />
                 )}
               </>
             )}
             {resTab === "body" && res.json === undefined && (
-              <pre className="resbody mono">
-                {res.bodyText === "" ? "(empty body)" : res.bodyText}
-              </pre>
+              <BodyText
+                key={sendCount}
+                text={res.bodyText === "" ? "(empty body)" : res.bodyText}
+              />
             )}
             {resTab === "response" && (
               <div className="resheaders mono">
