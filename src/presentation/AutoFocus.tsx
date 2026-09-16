@@ -9,14 +9,19 @@ import { useEffect, useRef } from "preact/hooks";
  * React はマウント時に focus() を呼んで補うが、Preact は属性を付けるだけなので、
  * ダイアログの入力欄はこの部品で明示的にフォーカスする。
  *
+ * @param when false のときはフォーカスを取らない。同じ画面に複数置いたとき、
+ *   後からマウントされた側が奪わないようにするための切り替え。省略時は取る
  * @param props そのまま input に渡す属性
  * @returns フォーカス済みの input
  */
-export function AutoFocusInput(props: JSX.IntrinsicElements["input"]) {
+export function AutoFocusInput({
+  when = true,
+  ...props
+}: JSX.IntrinsicElements["input"] & { when?: boolean }) {
   const ref = useRef<HTMLInputElement>(null);
   useEffect(() => {
-    ref.current?.focus();
-  }, []);
+    if (when) ref.current?.focus();
+  }, [when]);
   return <input ref={ref} {...props} />;
 }
 

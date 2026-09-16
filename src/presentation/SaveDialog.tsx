@@ -30,6 +30,9 @@ export default function SaveDialog({ defaultName, groups, savedKeys, onCancel, o
   const [mode, setMode] = useState<"select" | "new">(groups.length === 0 ? "new" : "select");
   const [newGroup, setNewGroup] = useState("");
   const [extraGroups, setExtraGroups] = useState<string[]>([]);
+  // New を押して入力欄を開いたときだけ true。グループが無くて最初から入力欄で
+  // 開くときは false のままにして、名前欄のフォーカスを奪わないようにする。
+  const [groupFocus, setGroupFocus] = useState(false);
   const allGroups = [...new Set([...groups, ...extraGroups])].sort((a, b) => a.localeCompare(b));
   const canGoBack = allGroups.length > 0;
   const overwriting = savedKeys.includes(savedKey(selected, name));
@@ -96,14 +99,22 @@ export default function SaveDialog({ defaultName, groups, savedKeys, onCancel, o
                   </option>
                 ))}
               </select>
-              <button type="button" className="btn" onClick={() => setMode("new")}>
+              <button
+                type="button"
+                className="btn"
+                onClick={() => {
+                  setMode("new");
+                  setGroupFocus(true);
+                }}
+              >
                 New
               </button>
             </div>
           ) : (
             <div className="grouprow">
-              {/* New を押した直後にそのまま打ち始められるよう、マウント時にフォーカスを取る。 */}
+              {/* New を押した直後にそのまま打ち始められるよう、そのときだけフォーカスを取る。 */}
               <AutoFocusInput
+                when={groupFocus}
                 className="mono"
                 value={newGroup}
                 onInput={(e) => setNewGroup(e.currentTarget.value)}
