@@ -735,6 +735,11 @@ textarea.body:focus {
   font-size: 13px;
 }
 
+/* cURL の貼り付けのように、複数行のテキストを受けるダイアログは少し広く取る。 */
+.dialog.wide {
+  max-width: 440px;
+}
+
 .field {
   display: flex;
   flex-direction: column;

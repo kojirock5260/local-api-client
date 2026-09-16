@@ -1,7 +1,7 @@
 import type { Dispatch, StateUpdater } from "preact/hooks";
 import { useRef, useState } from "preact/hooks";
 import { createSend, type Progress, TIMEOUT_MS } from "../application/sendRequest";
-import { toCurl } from "../domain/curl";
+import { fromCurl, toCurl } from "../domain/curl";
 import { type StoredResponse, toStoredResponse } from "../domain/history";
 import {
   type Draft,
@@ -12,6 +12,7 @@ import {
   ORIGINS,
 } from "../domain/request";
 import type { ResponseData } from "../domain/response";
+import CurlDialog from "./CurlDialog";
 import { formatSize, statusClass } from "./format";
 import JsonTree from "./JsonTree";
 import SaveDialog from "./SaveDialog";
@@ -62,6 +63,7 @@ export default function RequestView({
   const [res, setRes] = useState<ResponseData | null>(initialResponse ?? null);
   const [error, setError] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [curlOpen, setCurlOpen] = useState(false);
   const [resMode, setResMode] = useState<"tree" | "raw">("tree");
 
   // 受信の途中経過。送信中はここに届いた分が入り、完了すると res に置き換わる。
@@ -229,6 +231,44 @@ export default function RequestView({
     }
   }
 
+  /**
+   * 解釈済みの cURL を Draft に流し込む。
+   * 表示中のレスポンスは前のリクエストのものなので消し、本文があれば Body タブを開く。
+   *
+   * @param next 取り込む Draft
+   * @param warnings 落としたオプションなどの警告。あればトーストで知らせる
+   */
+  function applyImport(next: Draft, warnings: string[]) {
+    setDraft(next);
+    setRes(null);
+    setError(null);
+    setPartial(null);
+    const hasPayload =
+      next.bodyMode === "raw" ? next.body !== "" : next.bodyFields.some((f) => f.key.trim() !== "");
+    const withBody = next.method !== "GET" && next.method !== "HEAD";
+    setReqTab(withBody && hasPayload ? "body" : "headers");
+    onNotify("Imported from cURL", "success");
+    if (warnings.length > 0) onNotify(warnings.join(" · "));
+  }
+
+  /**
+   * パス欄に cURL コマンドごと貼られたときに、パスではなくリクエスト全体として取り込む。
+   *
+   * @param text 貼られた文字列
+   * @returns cURL として扱ったら true（失敗もトーストに出したうえで true）。
+   *   cURL でなければ何もせず false
+   */
+  function pasteCurl(text: string): boolean {
+    if (!/^\s*(\$\s*)?curl(\.exe)?\s/i.test(text)) return false;
+    try {
+      const { draft: next, warnings } = fromCurl(text);
+      applyImport(next, warnings);
+    } catch (e) {
+      onNotify(e instanceof Error ? e.message : "Could not read this command.", "danger");
+    }
+    return true;
+  }
+
   return (
     <div className="reqview">
       {/* リクエストの編集 */}
@@ -272,6 +312,9 @@ export default function RequestView({
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !sending) send();
               }}
+              onPaste={(e) => {
+                if (pasteCurl(e.clipboardData?.getData("text") ?? "")) e.preventDefault();
+              }}
               placeholder=":3000/api/users"
               spellcheck={false}
               aria-label="Port and path"
@@ -303,6 +346,15 @@ export default function RequestView({
           <div className="spacer" />
           <button type="button" className="btn" onClick={copyCurl} title="Copy as cURL command">
             cURL
+          </button>
+          <button
+            type="button"
+            className="btn"
+            onClick={() => setCurlOpen(true)}
+            title="Paste a cURL command to load it"
+            disabled={sending}
+          >
+            Paste
           </button>
           <button
             type="button"
@@ -639,6 +691,16 @@ export default function RequestView({
           onSave={(n, g) => {
             onSave(n, g);
             setDialogOpen(false);
+          }}
+        />
+      )}
+
+      {curlOpen && (
+        <CurlDialog
+          onCancel={() => setCurlOpen(false)}
+          onImport={(next, warnings) => {
+            applyImport(next, warnings);
+            setCurlOpen(false);
           }}
         />
       )}
