@@ -1,5 +1,6 @@
 import { useState } from "preact/hooks";
 import { savedKey } from "../domain/saved";
+import { AutoFocusInput } from "./AutoFocus";
 
 /** {@link SaveDialog} に渡す値。 */
 type Props = {
@@ -64,10 +65,11 @@ export default function SaveDialog({ defaultName, groups, savedKeys, onCancel, o
       <div className="dialog" role="dialog" aria-label="Save request">
         <div className="dialogtitle">Save request</div>
 
-        <label className="field">
+        <label className="field" htmlFor="save-name">
           <span className="fieldlabel">Name</span>
-          {/* 意図的な autofocus。この入力欄が保存操作の入口なので、開いた直後から名前を打ち始められるようにしている。biome.json で noAutofocus を無効にしてあるのはこのため。 */}
-          <input
+          {/* この入力欄が保存操作の入口なので、開いた直後から名前を打ち始められるようマウント時にフォーカスを取る。 */}
+          <AutoFocusInput
+            id="save-name"
             className="mono"
             value={name}
             onInput={(e) => setName(e.currentTarget.value)}
@@ -76,7 +78,6 @@ export default function SaveDialog({ defaultName, groups, savedKeys, onCancel, o
               if (e.key === "Escape") onCancel();
             }}
             placeholder="Request name"
-            autoFocus
             spellcheck={false}
           />
         </label>
@@ -101,8 +102,8 @@ export default function SaveDialog({ defaultName, groups, savedKeys, onCancel, o
             </div>
           ) : (
             <div className="grouprow">
-              {/* New を押した直後にそのまま打ち始められるよう autofocus を付けている。 */}
-              <input
+              {/* New を押した直後にそのまま打ち始められるよう、マウント時にフォーカスを取る。 */}
+              <AutoFocusInput
                 className="mono"
                 value={newGroup}
                 onInput={(e) => setNewGroup(e.currentTarget.value)}
@@ -111,7 +112,6 @@ export default function SaveDialog({ defaultName, groups, savedKeys, onCancel, o
                   if (e.key === "Escape" && canGoBack) setMode("select");
                 }}
                 placeholder="New group (optional)"
-                autoFocus
                 spellcheck={false}
               />
               <button type="button" className="btn" onClick={addGroup}>

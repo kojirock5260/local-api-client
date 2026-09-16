@@ -1,5 +1,6 @@
 import { useState } from "preact/hooks";
 import { basicValue, bearerValue } from "../domain/auth";
+import { AutoFocusInput } from "./AutoFocus";
 
 /** {@link AuthDialog} に渡す値。 */
 type Props = {
@@ -59,29 +60,29 @@ export default function AuthDialog({ onCancel, onApply }: Props) {
         </label>
 
         {kind === "bearer" ? (
-          <label className="field">
+          <label className="field" htmlFor="auth-token">
             <span className="fieldlabel">Token</span>
-            {/* 開いた直後から打ち始められるよう autofocus を付けている。 */}
-            <input
+            {/* 開いた直後から打ち始められるよう、マウント時にフォーカスを取る。 */}
+            <AutoFocusInput
+              id="auth-token"
               className="mono"
               value={token}
               onInput={(e) => setToken(e.currentTarget.value)}
               onKeyDown={keys}
               placeholder="eyJhbGciOi…"
-              autoFocus
               spellcheck={false}
             />
           </label>
         ) : (
           <>
-            <label className="field">
+            <label className="field" htmlFor="auth-user">
               <span className="fieldlabel">User</span>
-              <input
+              <AutoFocusInput
+                id="auth-user"
                 className="mono"
                 value={user}
                 onInput={(e) => setUser(e.currentTarget.value)}
                 onKeyDown={keys}
-                autoFocus
                 spellcheck={false}
               />
             </label>

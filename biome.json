@@ -21,9 +21,6 @@
       "preset": "recommended",
       "style": {
         "noNonNullAssertion": "off"
-      },
-      "a11y": {
-        "noAutofocus": "off"
       }
     }
   }

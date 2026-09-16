@@ -1,6 +1,7 @@
 import { useState } from "preact/hooks";
 import { fromCurl } from "../domain/curl";
 import type { Draft } from "../domain/request";
+import { AutoFocusTextarea } from "./AutoFocus";
 
 /** {@link CurlDialog} に渡す値。 */
 type Props = {
@@ -39,10 +40,11 @@ export default function CurlDialog({ onCancel, onImport }: Props) {
       <div className="dialog wide" role="dialog" aria-label="Paste cURL">
         <div className="dialogtitle">Paste cURL</div>
 
-        <label className="field">
+        <label className="field" htmlFor="curl-command">
           <span className="fieldlabel">Command</span>
-          {/* 開いた直後から貼れるよう autofocus を付けている。 */}
-          <textarea
+          {/* 開いた直後から貼れるよう、マウント時にフォーカスを取る。 */}
+          <AutoFocusTextarea
+            id="curl-command"
             className="body mono"
             value={text}
             onInput={(e) => {
@@ -57,7 +59,6 @@ export default function CurlDialog({ onCancel, onImport }: Props) {
               "curl -X POST 'http://localhost:3000/users' \\\n  -H 'Content-Type: application/json' \\\n  --data '{\"name\":\"sato\"}'"
             }
             rows={6}
-            autoFocus
             spellcheck={false}
           />
         </label>
