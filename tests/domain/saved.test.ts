@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { emptyDraft } from "../../src/domain/request";
-import { groupSaved, type SavedRequest, upsertSaved } from "../../src/domain/saved";
+import {
+  copyName,
+  duplicateSaved,
+  groupSaved,
+  type SavedRequest,
+  upsertSaved,
+} from "../../src/domain/saved";
 
 describe("upsertSaved", () => {
   it("prepends a new entry", () => {
@@ -73,5 +79,39 @@ describe("groupSaved", () => {
     items = upsertSaved(items, emptyDraft(), "c");
     const grouped = groupSaved(items);
     expect(grouped.map(([g]) => g)).toEqual(["alpha", "zebra", undefined]);
+  });
+});
+
+describe("copyName", () => {
+  it("appends copy, then numbers", () => {
+    let items: SavedRequest[] = upsertSaved([], emptyDraft(), "users");
+    expect(copyName(items, undefined, "users")).toBe("users copy");
+    items = upsertSaved(items, emptyDraft(), "users copy");
+    expect(copyName(items, undefined, "users")).toBe("users copy 2");
+    items = upsertSaved(items, emptyDraft(), "users copy 2");
+    expect(copyName(items, undefined, "users")).toBe("users copy 3");
+  });
+
+  it("only looks inside the same group", () => {
+    const items = upsertSaved([], emptyDraft(), "users copy", "other");
+    expect(copyName(items, undefined, "users")).toBe("users copy");
+  });
+});
+
+describe("duplicateSaved", () => {
+  it("prepends a copy with the same content and a new name", () => {
+    const src = upsertSaved([], { ...emptyDraft(), path: ":3000/x" }, "users", "g", { id: "a" });
+    const { items, name } = duplicateSaved(src, "a", { id: "b" });
+    expect(name).toBe("users copy");
+    expect(items.map((s) => s.name)).toEqual(["users copy", "users"]);
+    expect(items[0]).toMatchObject({ id: "b", group: "g", path: ":3000/x" });
+    expect(src).toHaveLength(1);
+  });
+
+  it("returns the input unchanged for an unknown id", () => {
+    const src = upsertSaved([], emptyDraft(), "users");
+    const { items, name } = duplicateSaved(src, "nope");
+    expect(items).toBe(src);
+    expect(name).toBeNull();
   });
 });

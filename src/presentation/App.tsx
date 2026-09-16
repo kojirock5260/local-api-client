@@ -8,7 +8,7 @@ import {
 } from "../domain/history";
 import { type Draft, emptyDraft, normalizeDraft } from "../domain/request";
 import type { ResponseData } from "../domain/response";
-import { type SavedRequest, savedKey, upsertSaved } from "../domain/saved";
+import { duplicateSaved, type SavedRequest, savedKey, upsertSaved } from "../domain/saved";
 import { mergeSaved, parseSavedFile } from "../domain/savedFile";
 import HistoryView from "./HistoryView";
 import RequestView from "./RequestView";
@@ -183,6 +183,18 @@ export default function App() {
   }
 
   /**
+   * 保存リクエストを 1 件複製する。名前は「元の名前 copy」で、重なれば番号が付く。
+   *
+   * @param id 複製元の id。存在しない id なら何も起きない
+   */
+  function duplicateSavedRequest(id: string) {
+    const { items, name } = duplicateSaved(saved, id);
+    if (name === null) return;
+    setSaved(items);
+    notify(`Duplicated as “${name}”`, "success");
+  }
+
+  /**
    * 履歴や保存から選んだ内容をエディタに読み込み、Request 画面に切り替える。
    *
    * 編集中の内容は確認なしで置き換わる。取り消せないが、Draft は自動保存されており
@@ -270,6 +282,7 @@ export default function App() {
           items={saved}
           onLoad={loadIntoEditor}
           onDelete={deleteSaved}
+          onDuplicate={duplicateSavedRequest}
           onImport={importSaved}
         />
       )}

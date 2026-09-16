@@ -334,6 +334,17 @@ button {
   margin: 0;
 }
 
+/* Raw ボディの下の行。JSON の注意と Format ボタン。 */
+.rawfoot {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.note.bad {
+  color: var(--err);
+}
+
 /* ---- body ---- */
 textarea.body {
   border: 1px solid var(--border);

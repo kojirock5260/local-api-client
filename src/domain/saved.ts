@@ -96,3 +96,44 @@ export function groupSaved(items: SavedRequest[]): [string | undefined, SavedReq
   if (ungrouped.length > 0) out.push([undefined, ungrouped]);
   return out;
 }
+
+/**
+ * 複製に付ける名前を決める。
+ *
+ * 「name copy」が空いていればそれ、使われていれば「name copy 2」「name copy 3」と
+ * 番号を増やす。同じグループの中だけで見るので、別グループの同名は邪魔にならない。
+ *
+ * @param items いまの保存一覧
+ * @param group 複製元のグループ
+ * @param name 複製元の名前
+ * @returns まだ使われていない名前
+ */
+export function copyName(items: SavedRequest[], group: string | undefined, name: string): string {
+  const taken = new Set(items.map((x) => savedKey(x.group, x.name)));
+  const base = `${name.trim()} copy`;
+  if (!taken.has(savedKey(group, base))) return base;
+  for (let i = 2; i < 10_000; i++) {
+    const candidate = `${base} ${i}`;
+    if (!taken.has(savedKey(group, candidate))) return candidate;
+  }
+  return `${base} ${Date.now()}`;
+}
+
+/**
+ * 保存リクエストを 1 件複製して先頭に足す。中身は同じで、名前だけ {@link copyName} で変える。
+ *
+ * @param items いまの保存一覧
+ * @param id 複製元の id
+ * @param opts テスト用の差し込み口。{@link upsertSaved} にそのまま渡す
+ * @returns 複製を足した新しい配列と、複製の名前。id が見つからなければ元の配列と null
+ */
+export function duplicateSaved(
+  items: SavedRequest[],
+  id: string,
+  opts: Options = {},
+): { items: SavedRequest[]; name: string | null } {
+  const src = items.find((x) => x.id === id);
+  if (!src) return { items, name: null };
+  const name = copyName(items, src.group, src.name);
+  return { items: upsertSaved(items, src, name, src.group, opts), name };
+}

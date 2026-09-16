@@ -3,7 +3,9 @@ import { useRef, useState } from "preact/hooks";
 import { createSend, type Progress, TIMEOUT_MS } from "../application/sendRequest";
 import { upsertHeader } from "../domain/auth";
 import { fromCurl, toCurl } from "../domain/curl";
+import { responseFilename } from "../domain/filename";
 import { type StoredResponse, toStoredResponse } from "../domain/history";
+import { formatJson, jsonError, looksLikeJson } from "../domain/json";
 import {
   type Draft,
   type HeaderRow,
@@ -15,6 +17,7 @@ import {
 import type { ResponseData } from "../domain/response";
 import AuthDialog from "./AuthDialog";
 import CurlDialog from "./CurlDialog";
+import { downloadBlob } from "./download";
 import { formatSize, statusClass } from "./format";
 import JsonTree from "./JsonTree";
 import SaveDialog from "./SaveDialog";
@@ -83,6 +86,40 @@ export default function RequestView({
   const cancelRef = useRef<(() => void) | null>(null);
 
   const hasBody = method !== "GET" && method !== "HEAD";
+
+  // Raw ボディが JSON のつもりかどうか。先頭の文字か Content-Type で判断する。
+  // XML やプレーンテキストを送りたい人に JSON の注意を出しても邪魔なだけなため。
+  const rawIsJson =
+    bodyMode === "raw" &&
+    (looksLikeJson(body) ||
+      headers.some(
+        (h) =>
+          h.enabled &&
+          h.key.trim().toLowerCase() === "content-type" &&
+          h.value.toLowerCase().includes("json"),
+      ));
+  const rawError = rawIsJson ? jsonError(body) : null;
+
+  // 切れている本文は保存しない。途中までのファイルを完全なものと取り違えるため。
+  const canDownload =
+    res !== null && !res.truncated && (res.bodyText !== "" || (res.bytes?.size ?? 0) > 0);
+
+  /** Raw ボディを整形する。読めない JSON なら何もしない（ボタンも無効にしてある）。 */
+  function formatRaw() {
+    const f = formatJson(body);
+    if (f !== null) patch({ body: f });
+  }
+
+  /**
+   * レスポンス本文をファイルに保存する。
+   * 受信したままの生バイトがあればそれを使う。履歴から復元したものには無いので、文字列から作る。
+   */
+  function downloadBody() {
+    if (!res) return;
+    const ct = res.headers.find(([k]) => k.toLowerCase() === "content-type")?.[1] ?? "";
+    const blob = res.bytes ?? new Blob([res.bodyText], { type: ct });
+    downloadBlob(responseFilename(res.request.url, ct), blob);
+  }
 
   /**
    * Draft の一部だけを差し替える。
@@ -545,14 +582,33 @@ export default function RequestView({
             )}
 
             {bodyMode === "raw" && (
-              <textarea
-                className="body mono"
-                value={body}
-                onInput={(e) => patch({ body: e.currentTarget.value })}
-                placeholder='{"name": "test"}'
-                spellcheck={false}
-                rows={6}
-              />
+              <>
+                <textarea
+                  className="body mono"
+                  value={body}
+                  onInput={(e) => patch({ body: e.currentTarget.value })}
+                  placeholder='{"name": "test"}'
+                  spellcheck={false}
+                  rows={6}
+                />
+                {rawIsJson && (
+                  <div className="rawfoot">
+                    {rawError !== null && (
+                      <span className="note bad">Invalid JSON: {rawError}</span>
+                    )}
+                    <div className="spacer" />
+                    <button
+                      type="button"
+                      className="ghost add"
+                      onClick={formatRaw}
+                      disabled={rawError !== null || body.trim() === ""}
+                      title="Pretty-print the JSON body"
+                    >
+                      Format
+                    </button>
+                  </div>
+                )}
+              </>
             )}
           </>
         )}
@@ -619,6 +675,16 @@ export default function RequestView({
                   title="Copy response body"
                 >
                   Copy
+                </button>
+              )}
+              {canDownload && (
+                <button
+                  type="button"
+                  className="ghost copybtn"
+                  onClick={downloadBody}
+                  title="Save the response body to a file"
+                >
+                  Download
                 </button>
               )}
             </div>

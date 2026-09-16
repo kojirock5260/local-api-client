@@ -2,6 +2,7 @@ import { useRef, useState } from "preact/hooks";
 import type { Draft } from "../domain/request";
 import { groupSaved, SAVED_LIMIT, type SavedRequest } from "../domain/saved";
 import { serializeSaved } from "../domain/savedFile";
+import { downloadBlob } from "./download";
 import { ago } from "./format";
 
 /** {@link SavedView} に渡す値。 */
@@ -9,6 +10,7 @@ type Props = {
   items: SavedRequest[];
   onLoad: (d: Draft) => void;
   onDelete: (id: string) => void;
+  onDuplicate: (id: string) => void;
   onImport: (text: string) => void;
 };
 
@@ -18,7 +20,7 @@ type Props = {
  *
  * @returns 保存の一覧。1 件も無いときも、取り込みができるようツールバーは出す
  */
-export default function SavedView({ items, onLoad, onDelete, onImport }: Props) {
+export default function SavedView({ items, onLoad, onDelete, onDuplicate, onImport }: Props) {
   const [closed, setClosed] = useState<Set<string>>(new Set());
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -41,25 +43,17 @@ export default function SavedView({ items, onLoad, onDelete, onImport }: Props) 
    *
    * ヘッダーとボディがそのまま入るので、書き出したファイルの扱いには注意がいる
    * （ボタンの title にも同じ注意を出している）。
-   *
-   * 拡張に downloads 権限を足したくないので、Blob と `<a>` の click で落とす。
    */
   function exportFile() {
-    const blob = new Blob([serializeSaved(items)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-
     // 同じ日に何度も書き出したときに上書きされないよう、日付をファイル名に入れる。
     const d = new Date();
     const stamp = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}${String(
       d.getDate(),
     ).padStart(2, "0")}`;
-    a.href = url;
-    a.download = `local-api-client-saved-${stamp}.json`;
-    a.click();
-
-    // 使い終わった URL を解放しないと、パネルを開いている間ずっとメモリに残る。
-    URL.revokeObjectURL(url);
+    downloadBlob(
+      `local-api-client-saved-${stamp}.json`,
+      new Blob([serializeSaved(items)], { type: "application/json" }),
+    );
   }
 
   /**
@@ -157,6 +151,15 @@ export default function SavedView({ items, onLoad, onDelete, onImport }: Props) 
                     <span className={`imethod mono m-${s.method}`}>{s.method}</span>
                     <span className="ipath mono">{s.path || "/"}</span>
                     <span className="iago">{ago(s.updatedAt)}</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="ghost"
+                    onClick={() => onDuplicate(s.id)}
+                    aria-label="Duplicate saved request"
+                    title="Duplicate"
+                  >
+                    ⧉
                   </button>
                   <button
                     type="button"
