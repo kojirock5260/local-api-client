@@ -15,6 +15,7 @@
  *   01-tree.png … 05-saved.png     1280x800 のスクリーンショット
  *   promo-small-440x280.png        小さいプロモタイル
  *   promo-marquee-1400x560.png     マーキー用タイル
+ *   docs/screenshot.png            README の先頭画像（英語版を作るときだけ）
  */
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
@@ -27,6 +28,8 @@ const VITE_PORT = 5177;
 /** パネルの CSS ピクセル。台紙には 1.5 倍で載せる。 */
 const PANEL = { width: 420, height: 500 };
 const SHOT_WIDTH = 630;
+/** README 用の 1 枚はツリーが全部見えるよう縦長に撮る。 */
+const README_PANEL = { width: 420, height: 720 };
 const OUT = resolve("store");
 
 const langs = (() => {
@@ -316,6 +319,36 @@ function tileHtml(lang, width, height, iconB64) {
 }
 
 /**
+ * パネルを開き、データを仕込み、シナリオを実行して撮る。
+ *
+ * @param {{ editor: object, run: (page: import("playwright-core").Page) => Promise<void> }} sc
+ * @param {{ width: number, height: number }} size パネルの CSS ピクセル
+ * @returns {Promise<Buffer>} 2 倍解像度の PNG
+ */
+async function capture(sc, size) {
+  const ctx = await browser.newContext({
+    viewport: size,
+    deviceScaleFactor: 2,
+    colorScheme: "dark",
+  });
+  await ctx.addInitScript(
+    (seed) => {
+      localStorage.setItem("editor", JSON.stringify(seed.editor));
+      localStorage.setItem("history", JSON.stringify(seed.history));
+      localStorage.setItem("saved", JSON.stringify(seed.saved));
+    },
+    { editor: sc.editor, history, saved },
+  );
+  const page = await ctx.newPage();
+  await page.goto(`http://localhost:${VITE_PORT}/sidepanel.html`);
+  await page.locator(".reqview").waitFor();
+  await sc.run(page);
+  const png = await page.screenshot({ type: "png" });
+  await ctx.close();
+  return png;
+}
+
+/**
  * HTML をそのサイズで描画して PNG にする。
  *
  * @param {import("playwright-core").Browser} browser
@@ -349,27 +382,16 @@ try {
     // メモリ上のユーザーが前の言語の操作で増えないよう、言語ごとにデモ API を立て直す。
     const api = await startDemo({ port: API_PORT, quiet: true });
 
-    for (const sc of SCENARIOS) {
-      const ctx = await browser.newContext({
-        viewport: PANEL,
-        deviceScaleFactor: 2,
-        colorScheme: "dark",
-      });
-      await ctx.addInitScript(
-        (seed) => {
-          localStorage.setItem("editor", JSON.stringify(seed.editor));
-          localStorage.setItem("history", JSON.stringify(seed.history));
-          localStorage.setItem("saved", JSON.stringify(seed.saved));
-        },
-        { editor: sc.editor, history, saved },
-      );
-      const page = await ctx.newPage();
-      await page.goto(`http://localhost:${VITE_PORT}/sidepanel.html`);
-      await page.locator(".reqview").waitFor();
-      await sc.run(page);
-      const panelPng = await page.screenshot({ type: "png" });
-      await ctx.close();
+    // README の先頭に置く 1 枚。台紙には載せず、パネルを縦長に撮ったものをそのまま使う。
+    // 他のシナリオがユーザーを作る前、つまりデモ API を立てた直後に撮る。
+    if (lang === "en") {
+      const out = resolve("docs/screenshot.png");
+      await writeFile(out, await capture(SCENARIOS[0], README_PANEL));
+      console.log("wrote", out);
+    }
 
+    for (const sc of SCENARIOS) {
+      const panelPng = await capture(sc, PANEL);
       const out = resolve(dir, `${sc.file}.png`);
       await writeFile(
         out,
