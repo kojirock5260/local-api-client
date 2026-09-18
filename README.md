@@ -31,6 +31,8 @@ on your device. See the [Privacy Policy](PRIVACY.md) for details.
 
 [Chrome Web Store](https://chromewebstore.google.com/detail/local-api-client/ihmoinkdbohnodnjpkdmenkmiikllfgp). Requires Chrome 114 or later.
 
+Website: https://kojirock5260.github.io/local-api-client/
+
 ## Try it
 
 ```bash

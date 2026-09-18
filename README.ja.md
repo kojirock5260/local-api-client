@@ -31,6 +31,8 @@ localhost 専用のミニマルな REST クライアント（Chrome 拡張・サ
 
 [Chrome Web Store](https://chromewebstore.google.com/detail/local-api-client/ihmoinkdbohnodnjpkdmenkmiikllfgp)。Chrome 114 以上が必要。
 
+紹介ページ: https://kojirock5260.github.io/local-api-client/ja/
+
 ## 試す
 
 ```bash
