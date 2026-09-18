@@ -16,7 +16,6 @@
  *   promo-small-440x280.png        小さいプロモタイル
  *   promo-marquee-1400x560.png     マーキー用タイル
  *   docs/screenshot.png            README の先頭画像（英語版を作るときだけ）
- *   logo-300x300.png               Edge のストア用ロゴ（英語版を作るときだけ）
  */
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
@@ -350,33 +349,6 @@ async function capture(sc, size) {
 }
 
 /**
- * Edge のストアが要求する 300x300 のロゴ。
- * manifest のアイコンと同じ形を SVG で描き直している。128px の PNG を拡大するとぼやけるため。
- */
-const LOGO_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="300" height="300">
-  <rect width="128" height="128" rx="26" fill="#1e2127"/>
-  <polygon points="34,36 34,92 72,64" fill="#3fbf8f" stroke="#3fbf8f" stroke-width="4" stroke-linejoin="round"/>
-  <rect x="74" y="79" width="30" height="13" rx="6.5" fill="#3fbf8f"/>
-</svg>`;
-
-/**
- * ロゴを PNG にする。角丸の外側は透明のまま残す。
- *
- * @param {import("playwright-core").Browser} browser
- * @returns {Promise<Buffer>}
- */
-async function renderLogo(browser) {
-  const page = await browser.newPage({
-    viewport: { width: 300, height: 300 },
-    deviceScaleFactor: 1,
-  });
-  await page.setContent(`<body style="margin:0;background:transparent">${LOGO_SVG}</body>`);
-  const png = await page.screenshot({ type: "png", omitBackground: true });
-  await page.close();
-  return png;
-}
-
-/**
  * HTML をそのサイズで描画して PNG にする。
  *
  * @param {import("playwright-core").Browser} browser
@@ -415,11 +387,6 @@ try {
     if (lang === "en") {
       const out = resolve("docs/screenshot.png");
       await writeFile(out, await capture(SCENARIOS[0], README_PANEL));
-      console.log("wrote", out);
-    }
-    if (lang === "en") {
-      const out = resolve(dir, "logo-300x300.png");
-      await writeFile(out, await renderLogo(browser));
       console.log("wrote", out);
     }
 
