@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Local API Client · REST client for localhost in Chrome's side panel</title>
+  <meta name="description" content="Send requests to localhost from Chrome's side panel and read the response as a JSON tree. No account, no cloud, zero external communication. Free and open source.">
+  <link rel="canonical" href="https://kojirock5260.github.io/local-api-client/">
+  <link rel="alternate" hreflang="en" href="https://kojirock5260.github.io/local-api-client/">
+  <link rel="alternate" hreflang="ja" href="https://kojirock5260.github.io/local-api-client/ja/">
+  <link rel="icon" href="icon128.png">
+  <link rel="stylesheet" href="style.css">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Local API Client">
+  <meta property="og:description" content="A minimal REST client for localhost, in Chrome's side panel. No account, no cloud, zero external communication.">
+  <meta property="og:image" content="https://kojirock5260.github.io/local-api-client/og.png">
+  <meta property="og:url" content="https://kojirock5260.github.io/local-api-client/">
+  <meta name="twitter:card" content="summary_large_image">
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <span class="logo">▸_</span>
+    <span class="name">Local API Client</span>
+    <nav>
+      <a href="https://github.com/kojirock5260/local-api-client">GitHub</a>
+      <a href="ja/">日本語</a>
+    </nav>
+  </header>
+
+  <div class="hero">
+    <div>
+      <h1>Talk to localhost without leaving the tab</h1>
+      <p class="lead">A minimal REST client that lives in Chrome's side panel and talks only to localhost. Build a request, send it, read the response as a tree. No account, no cloud, nothing leaves your machine.</p>
+      <div class="buttons">
+        <a class="btn primary" href="https://chromewebstore.google.com/detail/local-api-client/ihmoinkdbohnodnjpkdmenkmiikllfgp">Add to Chrome</a>
+        <a class="btn" href="https://github.com/kojirock5260/local-api-client">View the source</a>
+      </div>
+      <div class="tags">
+        <span class="tag">2 permissions</span>
+        <span class="tag">localhost only</span>
+        <span class="tag">No telemetry</span>
+        <span class="tag">MIT</span>
+      </div>
+    </div>
+    <div class="shot"><img src="screenshot.png" alt="Local API Client showing a GET request to localhost:3000/users and the JSON response as a tree" width="420"></div>
+  </div>
+
+  <section>
+    <h2>What it does</h2>
+    <div class="grid">
+      <div class="card"><h3>Any method, any header</h3><p>GET, POST, PUT, PATCH, DELETE, HEAD and OPTIONS. Headers as rows you can switch on and off.</p></div>
+      <div class="card"><h3>Fields, form or raw body</h3><p>Key-value rows are sent as JSON or as a form post. Or paste raw text and format it with one click.</p></div>
+      <div class="card"><h3>Streaming responses</h3><p>The body shows up as it arrives, so server-sent events and long responses just work. Cancel keeps what you got.</p></div>
+      <div class="card"><h3>Paste a curl command</h3><p>From docs, DevTools or an AI. Method, headers and body are filled in. Copy any request back out as curl.</p></div>
+      <div class="card"><h3>Auth and cookies</h3><p>Bearer or Basic in one click. An opt-in switch sends the cookies Chrome holds for localhost.</p></div>
+      <div class="card"><h3>History and saved requests</h3><p>The last 30 requests with their responses. Save requests into groups, export and import them as JSON.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="two">
+      <div>
+        <h2>Why localhost only</h2>
+        <p>Web-based API clients cannot reach localhost without a proxy or an agent, and many desktop clients want an account and cloud sync.</p>
+        <p>This extension asks Chrome for exactly two permissions, <code>sidePanel</code> and <code>storage</code>, plus access to <code>localhost</code> and <code>127.0.0.1</code>. A request to any other host is rejected before it is sent.</p>
+      </div>
+      <div>
+        <h2>Privacy</h2>
+        <p>Nothing is collected or transmitted. No analytics, no crash reporting, no cloud sync, no remote code. Everything you type stays in <code>chrome.storage.local</code> on your machine.</p>
+        <p><a href="https://github.com/kojirock5260/local-api-client/blob/main/PRIVACY.md">Read the privacy policy</a></p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Try it in a minute</h2>
+    <p>Install the extension, start any local server, and send a request to it.</p>
+<pre><code>python3 -m http.server 3000
+# In the panel: GET  http://localhost  :3000/</code></pre>
+    <p>The repository also ships a demo API with users, a login that sets a cookie, a Bearer-protected route and a server-sent event stream: <code>npm run demo</code>.</p>
+  </section>
+
+  <footer>
+    <span>MIT License</span>
+    <a href="https://github.com/kojirock5260/local-api-client">GitHub</a>
+    <a href="https://chromewebstore.google.com/detail/local-api-client/ihmoinkdbohnodnjpkdmenkmiikllfgp">Chrome Web Store</a>
+    <a href="https://github.com/kojirock5260/local-api-client/blob/main/PRIVACY.md">Privacy Policy</a>
+    <a href="https://github.com/kojirock5260/local-api-client/issues">Issues</a>
+  </footer>
+</div>
+</body>
+</html>

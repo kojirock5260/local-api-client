@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Local API Client · Chrome のサイドパネルで動く localhost 専用 REST クライアント</title>
+  <meta name="description" content="Chrome のサイドパネルから localhost にリクエストを送り、レスポンスを JSON ツリーで読む。アカウント不要、クラウドなし、外部通信ゼロ。無料でオープンソース。">
+  <link rel="canonical" href="https://kojirock5260.github.io/local-api-client/ja/">
+  <link rel="alternate" hreflang="en" href="https://kojirock5260.github.io/local-api-client/">
+  <link rel="alternate" hreflang="ja" href="https://kojirock5260.github.io/local-api-client/ja/">
+  <link rel="icon" href="../icon128.png">
+  <link rel="stylesheet" href="../style.css">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Local API Client">
+  <meta property="og:description" content="localhost 専用のミニマルな REST クライアント。Chrome のサイドパネルで、外部通信ゼロ。">
+  <meta property="og:image" content="https://kojirock5260.github.io/local-api-client/og.png">
+  <meta property="og:url" content="https://kojirock5260.github.io/local-api-client/ja/">
+  <meta name="twitter:card" content="summary_large_image">
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <span class="logo">▸_</span>
+    <span class="name">Local API Client</span>
+    <nav>
+      <a href="https://github.com/kojirock5260/local-api-client">GitHub</a>
+      <a href="../">English</a>
+    </nav>
+  </header>
+
+  <div class="hero">
+    <div>
+      <h1>タブを離れずに localhost を叩く</h1>
+      <p class="lead">Chrome のサイドパネルで動く、localhost 専用のミニマルな REST クライアントです。リクエストを組んで送り、レスポンスをツリーで読む。アカウントもクラウドも要らず、データはマシンから出ません。</p>
+      <div class="buttons">
+        <a class="btn primary" href="https://chromewebstore.google.com/detail/local-api-client/ihmoinkdbohnodnjpkdmenkmiikllfgp">Chrome に追加</a>
+        <a class="btn" href="https://github.com/kojirock5260/local-api-client">ソースを見る</a>
+      </div>
+      <div class="tags">
+        <span class="tag">権限は 2 つ</span>
+        <span class="tag">localhost のみ</span>
+        <span class="tag">計測なし</span>
+        <span class="tag">MIT</span>
+      </div>
+    </div>
+    <div class="shot"><img src="../screenshot.png" alt="localhost:3000/users への GET と、ツリー表示された JSON のレスポンス" width="420"></div>
+  </div>
+
+  <section>
+    <h2>できること</h2>
+    <div class="grid">
+      <div class="card"><h3>どのメソッドでも、どのヘッダーでも</h3><p>GET、POST、PUT、PATCH、DELETE、HEAD、OPTIONS。ヘッダーは行ごとにオン・オフできます。</p></div>
+      <div class="card"><h3>本文は Fields、Form、Raw</h3><p>キーと値の行を JSON かフォームとして送る。生テキストを貼って一クリックで整形もできます。</p></div>
+      <div class="card"><h3>ストリーミング表示</h3><p>届いた分から順に表示するので、SSE や長い応答もそのまま。Cancel しても途中までの内容は残ります。</p></div>
+      <div class="card"><h3>curl を貼るだけ</h3><p>ドキュメントや DevTools、AI の出力から。メソッド・ヘッダー・本文が埋まります。逆向きの curl コピーも。</p></div>
+      <div class="card"><h3>認証と Cookie</h3><p>Bearer / Basic は一クリック。Chrome が持つ localhost の Cookie は、オンにしたときだけ送ります。</p></div>
+      <div class="card"><h3>履歴と保存</h3><p>直近 30 件をレスポンスごと。保存はグループ分けでき、JSON で書き出しと取り込みができます。</p></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="two">
+      <div>
+        <h2>なぜ localhost 専用なのか</h2>
+        <p>Web 版の API クライアントはプロキシやエージェント無しでは localhost に届かず、デスクトップ版の多くはアカウントとクラウド同期が前提です。</p>
+        <p>この拡張機能が Chrome に求める権限は <code>sidePanel</code> と <code>storage</code> の 2 つと、<code>localhost</code> / <code>127.0.0.1</code> へのアクセスだけです。それ以外のホストへのリクエストは、送信前に拒否されます。</p>
+      </div>
+      <div>
+        <h2>プライバシー</h2>
+        <p>収集も送信もしません。解析、クラッシュレポート、クラウド同期、リモートコードはありません。入力した内容はすべて、お使いのマシンの <code>chrome.storage.local</code> に留まります。</p>
+        <p><a href="https://github.com/kojirock5260/local-api-client/blob/main/PRIVACY.md">プライバシーポリシー（英語）</a></p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>1 分で試す</h2>
+    <p>拡張を入れて、適当なローカルサーバーを立てて、送るだけです。</p>
+<pre><code>python3 -m http.server 3000
+# パネル側: GET  http://localhost  :3000/</code></pre>
+    <p>リポジトリには、ユーザー一覧、Cookie を発行するログイン、Bearer が要る経路、SSE のストリームを持つデモ API も入っています: <code>npm run demo</code></p>
+  </section>
+
+  <footer>
+    <span>MIT License</span>
+    <a href="https://github.com/kojirock5260/local-api-client">GitHub</a>
+    <a href="https://chromewebstore.google.com/detail/local-api-client/ihmoinkdbohnodnjpkdmenkmiikllfgp">Chrome Web Store</a>
+    <a href="https://github.com/kojirock5260/local-api-client/blob/main/PRIVACY.md">プライバシーポリシー</a>
+    <a href="https://github.com/kojirock5260/local-api-client/issues">Issues</a>
+  </footer>
+</div>
+</body>
+</html>
