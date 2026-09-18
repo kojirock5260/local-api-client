@@ -9,7 +9,8 @@ Everything to submit to the Chrome Web Store.
 | `en/promo-small-440x280.png` | Small promo tile | same |
 | `en/promo-marquee-1400x560.png` | Marquee promo tile | same |
 | `ja/…` | Optional set with Japanese captions, not kept in the repo | `npm run screenshots -- --lang ja` |
-| `description.en.txt`, `description.ja.txt` | Detailed description for the store listing, plain text | edit by hand |
+| `description.en.txt`, `description.ja.txt` | Detailed description for the Chrome listing, plain text | edit by hand |
+| `description.edge.en.txt`, `description.edge.ja.txt` | The same for the Edge listing (sidebar wording) | edit by hand |
 
 The captions live in `scripts/store-screenshots.mjs` under `TEXT`. Every run changes the image
 bytes (timestamps and timings appear in the panel), so commit new images only when the look changed.
@@ -23,7 +24,11 @@ Same package, same images. In Partner Center, fill in:
 | Package | `local-api-client-<version>.zip` from `npm run pack` |
 | Name | Local API Client |
 | Short description | the `extDescription` text in `public/_locales/en/messages.json` |
-| Description | `description.en.txt` (and `description.ja.txt` under Japanese) |
+| Description | `description.edge.en.txt` (and `description.edge.ja.txt` under Japanese). Same text as the Chrome one with Edge wording |
+| Short description (250 chars) | A minimal REST client for localhost in Microsoft Edge's sidebar. Send HTTP requests, read JSON as a tree, paste curl commands, watch responses stream in. No account, no cloud, zero external communication. Talks only to localhost and 127.0.0.1. |
+| Search terms (up to 7) | REST client, API client, localhost, HTTP client, JSON viewer, curl, sidebar |
+| Website URL | https://kojirock5260.github.io/local-api-client/ |
+| Store logo (300x300) | `en/logo-300x300.png` |
 | Category | Developer tools |
 | Privacy policy URL | https://github.com/kojirock5260/local-api-client/blob/main/PRIVACY.md |
 | Support URL | https://github.com/kojirock5260/local-api-client/issues |
